@@ -1,6 +1,6 @@
 //
 //  AppDelegate.swift
-//  Link It
+//  Quick Paste
 //
 //  Created by 张壹弛 on 12/24/18.
 //  Copyright © 2018 张壹弛. All rights reserved.
@@ -12,17 +12,17 @@ import Cocoa
 class AppDelegate: NSObject, NSApplicationDelegate {
     
     var item : NSStatusItem? = nil
-    var menu = NSMenu()
+    let menu = NSMenu()
     var entry: [String] = []
     var index = 0
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item?.button?.image = NSImage(named: "link")
+        item?.button?.image = NSImage(named: "paste")
 //        item?.button?.title = "Link It"
 //        item?.button?.action = #selector(AppDelegate.linkIt) //the menu taks precedence for the click
 //        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Link It", action: #selector(AppDelegate.linkIt), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Bind It", action: #selector(AppDelegate.bindIt), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: ""))
 //        print (menu.item(at: 1))
         item?.menu = menu
@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Insert code here to tear down your application
     }
     
-    @objc func linkIt(){
+    @objc func bindIt(){
         print("we will do some stuff")
 //        var entry = ""
         if let items = NSPasteboard.general.pasteboardItems{

@@ -7,20 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B0F8CF821F68B0F001CF701 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B0F8CF721F68B0F001CF701 /* Assets.xcassets */; };
 		3B80A20521D1C2EF003C0156 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B80A20421D1C2EF003C0156 /* AppDelegate.swift */; };
 		3B80A20721D1C2EF003C0156 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B80A20621D1C2EF003C0156 /* ViewController.swift */; };
-		3B80A20921D1C2F0003C0156 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B80A20821D1C2F0003C0156 /* Assets.xcassets */; };
 		3B80A20C21D1C2F0003C0156 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3B80A20A21D1C2F0003C0156 /* Main.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		3B80A20121D1C2EF003C0156 /* Link It.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Link It.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3B0F8CF721F68B0F001CF701 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3B80A20121D1C2EF003C0156 /* Quick Paste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Quick Paste.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B80A20421D1C2EF003C0156 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		3B80A20621D1C2EF003C0156 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		3B80A20821D1C2F0003C0156 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3B80A20B21D1C2F0003C0156 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		3B80A20D21D1C2F0003C0156 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3B80A20E21D1C2F0003C0156 /* Link_It.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Link_It.entitlements; sourceTree = "<group>"; };
+		3B80A20E21D1C2F0003C0156 /* Quick_Paste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Quick_Paste.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +37,7 @@
 		3B80A1F821D1C2EF003C0156 = {
 			isa = PBXGroup;
 			children = (
-				3B80A20321D1C2EF003C0156 /* Link It */,
+				3B80A20321D1C2EF003C0156 /* Quick Paste */,
 				3B80A20221D1C2EF003C0156 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -45,30 +45,30 @@
 		3B80A20221D1C2EF003C0156 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3B80A20121D1C2EF003C0156 /* Link It.app */,
+				3B80A20121D1C2EF003C0156 /* Quick Paste.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		3B80A20321D1C2EF003C0156 /* Link It */ = {
+		3B80A20321D1C2EF003C0156 /* Quick Paste */ = {
 			isa = PBXGroup;
 			children = (
+				3B0F8CF721F68B0F001CF701 /* Assets.xcassets */,
 				3B80A20421D1C2EF003C0156 /* AppDelegate.swift */,
 				3B80A20621D1C2EF003C0156 /* ViewController.swift */,
-				3B80A20821D1C2F0003C0156 /* Assets.xcassets */,
 				3B80A20A21D1C2F0003C0156 /* Main.storyboard */,
 				3B80A20D21D1C2F0003C0156 /* Info.plist */,
-				3B80A20E21D1C2F0003C0156 /* Link_It.entitlements */,
+				3B80A20E21D1C2F0003C0156 /* Quick_Paste.entitlements */,
 			);
-			path = "Link It";
+			path = "Quick Paste";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		3B80A20021D1C2EF003C0156 /* Link It */ = {
+		3B80A20021D1C2EF003C0156 /* Quick Paste */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 3B80A21121D1C2F0003C0156 /* Build configuration list for PBXNativeTarget "Link It" */;
+			buildConfigurationList = 3B80A21121D1C2F0003C0156 /* Build configuration list for PBXNativeTarget "Quick Paste" */;
 			buildPhases = (
 				3B80A1FD21D1C2EF003C0156 /* Sources */,
 				3B80A1FE21D1C2EF003C0156 /* Frameworks */,
@@ -78,9 +78,9 @@
 			);
 			dependencies = (
 			);
-			name = "Link It";
+			name = "Quick Paste";
 			productName = "Link It";
-			productReference = 3B80A20121D1C2EF003C0156 /* Link It.app */;
+			productReference = 3B80A20121D1C2EF003C0156 /* Quick Paste.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -98,7 +98,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 3B80A1FC21D1C2EF003C0156 /* Build configuration list for PBXProject "Link It" */;
+			buildConfigurationList = 3B80A1FC21D1C2EF003C0156 /* Build configuration list for PBXProject "Quick Paste" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -111,7 +111,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				3B80A20021D1C2EF003C0156 /* Link It */,
+				3B80A20021D1C2EF003C0156 /* Quick Paste */,
 			);
 		};
 /* End PBXProject section */
@@ -121,7 +121,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3B80A20921D1C2F0003C0156 /* Assets.xcassets in Resources */,
+				3B0F8CF821F68B0F001CF701 /* Assets.xcassets in Resources */,
 				3B80A20C21D1C2F0003C0156 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -271,17 +271,19 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Link It/Link_It.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Quick Paste/Quick_Paste.entitlements";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = W6G7AYP4H7;
-				INFOPLIST_FILE = "Link It/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/Quick Paste/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.wolfPack.Link-It";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.wolfPack.Quick-Paste";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
@@ -290,17 +292,19 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Link It/Link_It.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Quick Paste/Quick_Paste.entitlements";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = W6G7AYP4H7;
-				INFOPLIST_FILE = "Link It/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/Quick Paste/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.wolfPack.Link-It";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.wolfPack.Quick-Paste";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
@@ -308,7 +312,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		3B80A1FC21D1C2EF003C0156 /* Build configuration list for PBXProject "Link It" */ = {
+		3B80A1FC21D1C2EF003C0156 /* Build configuration list for PBXProject "Quick Paste" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3B80A20F21D1C2F0003C0156 /* Debug */,
@@ -317,7 +321,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		3B80A21121D1C2F0003C0156 /* Build configuration list for PBXNativeTarget "Link It" */ = {
+		3B80A21121D1C2F0003C0156 /* Build configuration list for PBXNativeTarget "Quick Paste" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				3B80A21221D1C2F0003C0156 /* Debug */,

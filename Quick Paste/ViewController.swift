@@ -1,6 +1,6 @@
 //
 //  ViewController.swift
-//  Link It
+//  Quick Paste
 //
 //  Created by 张壹弛 on 12/24/18.
 //  Copyright © 2018 张壹弛. All rights reserved.
