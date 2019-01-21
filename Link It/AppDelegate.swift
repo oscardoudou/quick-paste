@@ -12,16 +12,19 @@ import Cocoa
 class AppDelegate: NSObject, NSApplicationDelegate {
     
     var item : NSStatusItem? = nil
-
+    var menu = NSMenu()
+    var entry: [String] = []
+    var index = 0
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item?.button?.image = NSImage(named: "link")
 //        item?.button?.title = "Link It"
 //        item?.button?.action = #selector(AppDelegate.linkIt) //the menu taks precedence for the click
-        let menu = NSMenu()
+//        let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Link It", action: #selector(AppDelegate.linkIt), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: ""))
+//        print (menu.item(at: 1))
         item?.menu = menu
     }
 
@@ -31,28 +34,48 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func linkIt(){
         print("we will do some stuff")
+//        var entry = ""
         if let items = NSPasteboard.general.pasteboardItems{
             for item in items{
                 for type in item.types{
                     if type.rawValue == "public.utf8-plain-text"{
-                        if let url = item.string(forType: type){
+                        if let copiedContent = item.string(forType: type){
 //                            print(url)
                             NSPasteboard.general.clearContents()
-                            var actualURL = ""
-                            if url.hasPrefix("http://")||url.hasPrefix("https://"){
-                                actualURL = url
-                            }else{
-                                actualURL = "http://\(url)"
-                            }
-                            //general scenario textedit, safari, udemy
-                            NSPasteboard.general.setString("<a href=\"\(actualURL)\">\(url)</a>", forType: NSPasteboard.PasteboardType.init("public.html"))
-                            //some scenario don't utilize html type, only recognize utf8 like chrome, leetcode
-                            NSPasteboard.general.setString(url, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+//                            if url.hasPrefix("http://")||url.hasPrefix("https://"){
+//                                actualURL = url
+//                            }else{
+//                                actualURL = "http://\(url)"
+//                            }
+                            entry.append(copiedContent)
+                            
+//                            //general scenario textedit, safari, udemy
+//                            NSPasteboard.general.setString("<a href=\"\(actualURL)\">\(url)</a>", forType: NSPasteboard.PasteboardType.init("public.html"))
+//                            //some scenario don't utilize html type, only recognize utf8 like chrome, leetcode
+//                            NSPasteboard.general.setString(url, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+//                            NSPasteboard.general.setString(entry, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
                         }
                     }
                 }
             }
         }
+//        let menu = NSMenu()
+        //entry.firstIndex(of: "(") dont know why could be assigned to title
+        //let indexEndOfTitle = entry.index(entry.startIndex, offsetBy: 15), then use entry[indexEndOfTitle] still error
+        let indexEndOfTitle = entry[index].firstIndex(of: "(")!
+        let newItem = NSMenuItem(title: String(entry[index][...indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "")
+//        menu.insertItem(withTitle: String(entry[index][...indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "", at: 2)
+        newItem.representedObject = index as Int
+        menu.insertItem(newItem, at: index + 1)
+        index+=1
+//        printPasteBoard()
+    }
+    
+    @objc func copyIt(sender: NSMenuItem){
+        print("---------copyIt--------------")
+//        NSPasteboard.general.setString(entry[index], forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+        NSPasteboard.general.setString(entry[sender.representedObject as! Int], forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+        print("we copy entry content to pasteboard")
         printPasteBoard()
     }
     
