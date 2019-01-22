@@ -13,8 +13,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var item : NSStatusItem? = nil
     let menu = NSMenu()
-    var entry: [String] = []
-    var index = 0
+    var entry: [String] = [""]
+    var index = 1
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -22,8 +22,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //        item?.button?.title = "Link It"
 //        item?.button?.action = #selector(AppDelegate.linkIt) //the menu taks precedence for the click
 //        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Bind It", action: #selector(AppDelegate.bindIt), keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Bind It", action: #selector(AppDelegate.bindIt), keyEquivalent: "b"))
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))
 //        print (menu.item(at: 1))
         item?.menu = menu
     }
@@ -59,12 +59,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
-//        let menu = NSMenu()
-        //entry.firstIndex(of: "(") dont know why could be assigned to title
-        //let indexEndOfTitle = entry.index(entry.startIndex, offsetBy: 15), then use entry[indexEndOfTitle] still error
         let indexEndOfTitle = entry[index].firstIndex(of: "(")!
-        let newItem = NSMenuItem(title: String(entry[index][...indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "")
-//        menu.insertItem(withTitle: String(entry[index][...indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "", at: 2)
+        //get string before "("
+        let newItem = NSMenuItem(title: String(entry[index][..<indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+        //menu.insertItem(withTitle: String(entry[index][...indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "", at: 2)
         newItem.representedObject = index as Int
         menu.insertItem(newItem, at: index + 1)
         index+=1
