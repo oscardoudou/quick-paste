@@ -12,6 +12,6 @@ It extracts the string before parenthesis in the first line. And present it as a
 ## Todo
 - [x] extract title when () present in first line
 - [x] key binding
-- [x] support Linkedin GitHub link only show host
+- [x] support Linkedin GitHub link(w/ or w/o https://) only show host
 - [ ]  support email
 

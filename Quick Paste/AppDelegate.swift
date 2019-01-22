@@ -33,27 +33,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func bindIt(){
-        print("we will do some stuff")
-//        var entry = ""
+//        print("we will do some stuff")
         if let items = NSPasteboard.general.pasteboardItems{
             for item in items{
                 for type in item.types{
                     if type.rawValue == "public.utf8-plain-text"{
                         if let copiedContent = item.string(forType: type){
-//                            print(url)
                             NSPasteboard.general.clearContents()
-//                            if url.hasPrefix("http://")||url.hasPrefix("https://"){
-//                                actualURL = url
-//                            }else{
-//                                actualURL = "http://\(url)"
-//                            }
                             entry.append(copiedContent)
-                            
-//                            //general scenario textedit, safari, udemy
-//                            NSPasteboard.general.setString("<a href=\"\(actualURL)\">\(url)</a>", forType: NSPasteboard.PasteboardType.init("public.html"))
-//                            //some scenario don't utilize html type, only recognize utf8 like chrome, leetcode
-//                            NSPasteboard.general.setString(url, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
-//                            NSPasteboard.general.setString(entry, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
                         }
                     }
                 }
@@ -66,33 +53,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }else{
             //no "(" present in first line, link or email
             var host = ""
-            //http or https
+            //default start form startIndex
+            var start = entry[index].startIndex
+            //point to last . since end always be the last .
+            let end = entry[index].lastIndex(of: ".")!
+            //point to first .
+            let indexPossibleStartHost = entry[index].firstIndex(of: ".")!
+            //if has http or https prefix, start from 3 offset from colon
             if entry[index].hasPrefix("http://")||entry[index].hasPrefix("https://"){
-                let indexEndOfProtocol = entry[index].firstIndex(of: ":")
-                //point to first char after ://
-                var start = entry[index].index(indexEndOfProtocol!, offsetBy: 3)
-                //point to first .
-                let indexPossibleStartHost = entry[index].firstIndex(of: ".")
-                //point to last .
-                let indexEndHost = entry[index].lastIndex(of: ".")
-                //end always be the last .
-                let end = indexEndHost!
-                print (indexEndOfProtocol!.encodedOffset)
-                print (indexPossibleStartHost!.encodedOffset)
-                print (indexEndHost!.encodedOffset)
-                if(indexPossibleStartHost!.encodedOffset != indexEndHost!.encodedOffset){
-                    //piont to first .
-                    start = entry[index].index(indexPossibleStartHost!, offsetBy: 1)
-                }
-                host = String(entry[index][start..<end])
-                print (host)
+                let indexEndOfProtocol = entry[index].firstIndex(of: ":")!
+                //point to first char after :// for link like github and leetcode
+                start = entry[index].index(indexEndOfProtocol, offsetBy: 3)
             }
+            if(indexPossibleStartHost.encodedOffset != end.encodedOffset){
+                //piont to first . for link like linkedin
+                start = entry[index].index(indexPossibleStartHost, offsetBy: 1)
+            }
+            host = String(entry[index][start..<end])
+            print (host)
             newItem = NSMenuItem(title: host, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
         }
         newItem!.representedObject = index as Int
         menu.insertItem(newItem!, at: index + 1)
         index+=1
-//        printPasteBoard()
     }
     
     @objc func copyIt(sender: NSMenuItem){
