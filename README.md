@@ -14,5 +14,6 @@ It extracts the string before parenthesis in the first line. And present it as a
 - [x] key binding
 - [x] support Linkedin GitHub link(w/ or w/o https://) only show host
 - [x] separator item Stackoverflow Linkedin GitHub icon available to show 
-- [ ]  support email
+- [x] support email
+- [ ] content w/o @ . (
 

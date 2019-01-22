@@ -58,35 +58,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             newItem = NSMenuItem(title: String(entry[index][..<indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
         }else{
             //no "(" present in first line, link or email
-            var host = ""
-            //default start form startIndex
-            var start = entry[index].startIndex
-            //point to last . since end always be the last .
-            let end = entry[index].lastIndex(of: ".")!
-            //point to first .
-            let indexPossibleStartHost = entry[index].firstIndex(of: ".")!
-            //if has http or https prefix, start from 3 offset from colon
-            if entry[index].hasPrefix("http://")||entry[index].hasPrefix("https://"){
-                let indexEndOfProtocol = entry[index].firstIndex(of: ":")!
-                //point to first char after :// for link like github and leetcode
-                start = entry[index].index(indexEndOfProtocol, offsetBy: 3)
+            if let indexOfAt = entry[index].firstIndex(of: "@") as String.Index?{
+                //email
+                let start = entry[index].index(indexOfAt, offsetBy: 1)
+                let end = entry[index].lastIndex(of: ".")!
+                let institue = String(entry[index][start..<end])
+                newItem = NSMenuItem(title: institue.uppercased(), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+            }else{
+                //default start form startIndex
+                var start = entry[index].startIndex
+                //point to last . since end always be the last .
+                let end = entry[index].lastIndex(of: ".")!
+                //point to first .
+                let indexPossibleStartHost = entry[index].firstIndex(of: ".")!
+                //if has http or https prefix, start from 3 offset from colon
+                if entry[index].hasPrefix("http://")||entry[index].hasPrefix("https://"){
+                    let indexEndOfProtocol = entry[index].firstIndex(of: ":")!
+                    //point to first char after :// for link like github and leetcode
+                    start = entry[index].index(indexEndOfProtocol, offsetBy: 3)
+                }
+                if(indexPossibleStartHost.encodedOffset != end.encodedOffset){
+                    //piont to first . for link like linkedin
+                    start = entry[index].index(indexPossibleStartHost, offsetBy: 1)
+                }
+                let host = String(entry[index][start..<end])
+                print (host)
+                newItem = NSMenuItem(title: host, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+                if(host == "stackoverflow"){
+                    newItem?.image = NSImage(named: "stackoverflow")
+                    newItem?.title = ""
+                }
+                if(host == "linkedin"){
+                    newItem?.image = NSImage(named: "linkedin")
+                    newItem?.title = ""
+                }
+                if(host == "github"){
+                    newItem?.image = NSImage(named: "github")
+                    newItem?.title = ""
+                }
             }
-            if(indexPossibleStartHost.encodedOffset != end.encodedOffset){
-                //piont to first . for link like linkedin
-                start = entry[index].index(indexPossibleStartHost, offsetBy: 1)
-            }
-            host = String(entry[index][start..<end])
-            print (host)
-            newItem = NSMenuItem(title: host, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-            if(host == "stackoverflow"){
-                newItem?.image = NSImage(named: "stackoverflow")
-            }
-            if(host == "linkedin"){
-                newItem?.image = NSImage(named: "linkedin")
-            }
-            if(host == "github"){
-                newItem?.image = NSImage(named: "github")
-            }
+
         }
         newItem!.representedObject = index as Int
         menu.insertItem(newItem!, at: index + 1)
