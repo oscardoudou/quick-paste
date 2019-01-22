@@ -59,19 +59,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         }
-        let indexEndOfTitle = entry[index].firstIndex(of: "(")!
-        //get string before "("
-        let newItem = NSMenuItem(title: String(entry[index][..<indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-        //menu.insertItem(withTitle: String(entry[index][...indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "", at: 2)
-        newItem.representedObject = index as Int
-        menu.insertItem(newItem, at: index + 1)
+        var newItem : NSMenuItem? = nil
+        if let indexEndOfTitle = entry[index].firstIndex(of: "(") as String.Index?{
+            //get string before "("
+            newItem = NSMenuItem(title: String(entry[index][..<indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+        }else{
+            //no "(" present in first line, link or email
+            var host = ""
+            //http or https
+            if entry[index].hasPrefix("http://")||entry[index].hasPrefix("https://"){
+                let indexEndOfProtocol = entry[index].firstIndex(of: ":")
+                //point to first char after ://
+                var start = entry[index].index(indexEndOfProtocol!, offsetBy: 3)
+                //point to first .
+                let indexPossibleStartHost = entry[index].firstIndex(of: ".")
+                //point to last .
+                let indexEndHost = entry[index].lastIndex(of: ".")
+                //end always be the last .
+                let end = indexEndHost!
+                print (indexEndOfProtocol!.encodedOffset)
+                print (indexPossibleStartHost!.encodedOffset)
+                print (indexEndHost!.encodedOffset)
+                if(indexPossibleStartHost!.encodedOffset != indexEndHost!.encodedOffset){
+                    //piont to first .
+                    start = entry[index].index(indexPossibleStartHost!, offsetBy: 1)
+                }
+                host = String(entry[index][start..<end])
+                print (host)
+            }
+            newItem = NSMenuItem(title: host, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+        }
+        newItem!.representedObject = index as Int
+        menu.insertItem(newItem!, at: index + 1)
         index+=1
 //        printPasteBoard()
     }
     
     @objc func copyIt(sender: NSMenuItem){
         print("---------copyIt--------------")
-//        NSPasteboard.general.setString(entry[index], forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
         NSPasteboard.general.setString(entry[sender.representedObject as! Int], forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
         print("we copy entry content to pasteboard")
         printPasteBoard()
