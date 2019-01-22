@@ -15,6 +15,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let menu = NSMenu()
     var entry: [String] = [""]
     var index = 1
+    var firstTime = true
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -23,8 +24,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //        item?.button?.action = #selector(AppDelegate.linkIt) //the menu taks precedence for the click
 //        let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Bind It", action: #selector(AppDelegate.bindIt), keyEquivalent: "b"))
+        menu.addItem(NSMenuItem.separator())
+        print (menu.item(at: 1))
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))
-//        print (menu.item(at: 1))
         item?.menu = menu
     }
 
@@ -34,6 +36,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func bindIt(){
 //        print("we will do some stuff")
+        if(firstTime){
+            menu.insertItem(NSMenuItem.separator(), at: 1)
+            firstTime = false
+        }
         if let items = NSPasteboard.general.pasteboardItems{
             for item in items{
                 for type in item.types{
@@ -72,6 +78,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             host = String(entry[index][start..<end])
             print (host)
             newItem = NSMenuItem(title: host, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+            if(host == "stackoverflow"){
+                newItem?.image = NSImage(named: "stackoverflow")
+            }
+            if(host == "linkedin"){
+                newItem?.image = NSImage(named: "linkedin")
+            }
+            if(host == "github"){
+                newItem?.image = NSImage(named: "github")
+            }
         }
         newItem!.representedObject = index as Int
         menu.insertItem(newItem!, at: index + 1)
