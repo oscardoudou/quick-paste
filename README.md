@@ -19,3 +19,4 @@ It extracts the string before parenthesis in the first line. And present it as a
 - [ ] submenu ? unbind
 - [ ] duplicate
 
+Still working on it. But if you like the idea, dont hesitate to give it a star.
