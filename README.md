@@ -16,6 +16,7 @@ It extracts the string before parenthesis in the first line. And present it as a
 - [x] separator item Stackoverflow Linkedin GitHub icon available to show 
 - [x] support email
 - [x] content w/o @ . ( separate by space and limit length < max ()entry size
+- [x] support custom url scheme
 - [ ] submenu ? unbind
 - [ ] duplicate
 
