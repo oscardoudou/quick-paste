@@ -30,5 +30,18 @@
 	<string>Main</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>com.wolfPack.Quick-Paste</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>readlog</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -28,6 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //        print (menu.item(at: 1))
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))
         item?.menu = menu
+        NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -152,6 +153,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func quit(){
         NSApplication.shared.terminate(self)
+    }
+
+    @objc func handleAppleEvent(event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
+        menu.addItem(NSMenuItem.separator())
+        //        print (menu.item(at: 1))
+        if let text = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue?.removingPercentEncoding {
+//                print(text)
+                if text.contains("readlog://") {
+                    if let indexOfSemiColon = text.firstIndex(of: ":") as String.Index?{
+                        if(firstTime){
+                            menu.insertItem(NSMenuItem.separator(), at: 1)
+                            firstTime = false
+                        }
+                        let start = text.index(indexOfSemiColon, offsetBy: 3)
+                        let end = text.endIndex
+                        let paramFromCommandLine = String(text[start..<end])
+                        NSPasteboard.general.clearContents()
+                        entry.append(paramFromCommandLine)
+                        var newItem : NSMenuItem? = nil
+                        newItem = NSMenuItem(title: String(paramFromCommandLine), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+                        newItem!.representedObject = index as Int
+                        menu.insertItem(newItem!, at: index + 1)
+                        index+=1
+                        NSPasteboard.general.setString(paramFromCommandLine, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+                    }
+                }
+        }
     }
 }
 
