@@ -20,7 +20,7 @@
 		3B80A20621D1C2EF003C0156 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		3B80A20B21D1C2F0003C0156 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		3B80A20D21D1C2F0003C0156 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3B80A20E21D1C2F0003C0156 /* Quick_Paste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Quick_Paste.entitlements; sourceTree = "<group>"; };
+		3BC3C7E82340522900FE92E8 /* Quick Paste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Quick Paste.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,12 +53,12 @@
 		3B80A20321D1C2EF003C0156 /* Quick Paste */ = {
 			isa = PBXGroup;
 			children = (
+				3BC3C7E82340522900FE92E8 /* Quick Paste.entitlements */,
 				3B0F8CF721F68B0F001CF701 /* Assets.xcassets */,
 				3B80A20421D1C2EF003C0156 /* AppDelegate.swift */,
 				3B80A20621D1C2EF003C0156 /* ViewController.swift */,
 				3B80A20A21D1C2F0003C0156 /* Main.storyboard */,
 				3B80A20D21D1C2F0003C0156 /* Info.plist */,
-				3B80A20E21D1C2F0003C0156 /* Quick_Paste.entitlements */,
 			);
 			path = "Quick Paste";
 			sourceTree = "<group>";
@@ -95,6 +95,11 @@
 				TargetAttributes = {
 					3B80A20021D1C2EF003C0156 = {
 						CreatedOnToolsVersion = 10.1;
+						SystemCapabilities = {
+							com.apple.Sandbox = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -271,7 +276,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Quick Paste/Quick_Paste.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Quick Paste/Quick Paste.entitlements";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -292,7 +297,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Quick Paste/Quick_Paste.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Quick Paste/Quick Paste.entitlements";
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;

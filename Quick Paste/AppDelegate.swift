@@ -14,11 +14,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var item : NSStatusItem? = nil
     let menu = NSMenu()
     var entry: [String] = [""]
+    var types: [String] = [""]
     var index = 1
     var firstTime = true
     var firstParenthesisEntry = true
     var maxCharacterSize = 255
-    
+    var preferTypes: [NSPasteboard.PasteboardType] = [NSPasteboard.PasteboardType.init("public.file-url"),NSPasteboard.PasteboardType.init("public.utf8-plain-text")]
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -36,23 +37,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func bindIt(){
-//        print("we will do some stuff")
+        print("---------bindIt--------------")
+        let items = NSPasteboard.general.pasteboardItems!
+        if items.count == 0{
+            print("items is: \(items)")
+            return
+        }
+        for item in items{
+            print(item)
+            var preferType = item.availableType(from: preferTypes)!
+            print(preferType)
+            if preferType.rawValue == "public.utf8-plain-text"{
+                if let copiedContent = item.string(forType: preferType){
+                    //important step
+                    NSPasteboard.general.clearContents()
+                    print("plaintext is: \(copiedContent)")
+                    entry.append(copiedContent)
+                    types.append(preferType.rawValue)
+                }
+            }
+            else if preferType.rawValue == "public.file-url"{
+                if let path = item.string(forType: preferType){
+                    //important step
+                    NSPasteboard.general.clearContents()
+                    print("path is: \(path)")
+                    entry.append(path)
+                    types.append(preferType.rawValue)
+                }
+            }
+            else{
+//                TODO
+                print(preferType.rawValue)
+            }
+//                for data in item.data{
+//                    print (data.rawValue)
+//                }
+        }
+        
         if(firstTime){
             menu.insertItem(NSMenuItem.separator(), at: 1)
             firstTime = false
         }
-        if let items = NSPasteboard.general.pasteboardItems{
-            for item in items{
-                for type in item.types{
-                    if type.rawValue == "public.utf8-plain-text"{
-                        if let copiedContent = item.string(forType: type){
-                            NSPasteboard.general.clearContents()
-                            entry.append(copiedContent)
-                        }
-                    }
-                }
-            }
-        }
+        
+        let newItem = createMenuItem()
+        addItemToMenu(item: newItem)
+        
+    }
+    
+    @objc func createMenuItem()->NSMenuItem{
         var newItem : NSMenuItem? = nil
         if let indexEndOfTitle = entry[index].firstIndex(of: "(") as String.Index?{
             //get string before "("
@@ -128,19 +160,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         newItem!.representedObject = index as Int
-        menu.insertItem(newItem!, at: index + 1)
+        return newItem!
+    }
+    
+    @objc func addItemToMenu(item: NSMenuItem){
+        menu.insertItem(item, at: index + 1)
         index+=1
     }
     
     @objc func copyIt(sender: NSMenuItem){
         print("---------copyIt--------------")
-        NSPasteboard.general.setString(entry[sender.representedObject as! Int], forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+        //important setep
+        NSPasteboard.general.clearContents()
+//        NSPasteboard.general.setString(entry[sender.representedObject as! Int], forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+        NSPasteboard.general.setString(entry[sender.representedObject as! Int], forType: NSPasteboard.PasteboardType.init(types[sender.representedObject as! Int]))
+        print(sender.representedObject as! Int)
+//        NSPasteboard.general.setData(arr[0] as Data, forType:NSPasteboard.PasteboardType.init("png") )
         print("we copy entry content to pasteboard")
         printPasteBoard()
     }
     
     @objc func printPasteBoard(){
         //it is possible no copy at all, so it need to be optional
+        print("inside printPasteBoard")
         if let items = NSPasteboard.general.pasteboardItems{
             for item in items{
                 for type in item.types{
