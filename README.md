@@ -7,10 +7,11 @@ Initially it is just a simple tool to facilate my job application filling proces
 1. The initial purpose resume parsing, menu would look good only in this [resume](https://www.dropbox.com/s/8r6wm7d8t45pmsc/2019_Resume_Yichi_Zhang.pdf?dl=0) format. 
 2. Support custom url scheme, run `open "readlog://textwanttosend"`in terminal would copy the text to menu. 
 3. Support local file and folder
+4. Log copy fo further 
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
-- [ ] fix custom url scheme crash
+- [x] fix custom url scheme crash
 - [ ] clean item representation
 - [ ] restrict menu size
 - [ ] duplicate check
