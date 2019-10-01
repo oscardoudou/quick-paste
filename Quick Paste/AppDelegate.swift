@@ -20,6 +20,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var firstParenthesisEntry = true
     var maxCharacterSize = 255
     var preferTypes: [NSPasteboard.PasteboardType] = [NSPasteboard.PasteboardType.init("public.file-url"),NSPasteboard.PasteboardType.init("public.utf8-plain-text")]
+    var timer: Timer!
+    var lastChangeCount: Int = 0
+    let pasteboard = NSPasteboard.general
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -30,6 +33,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))
         item?.menu = menu
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+        NotificationCenter.default.addObserver(self, selector: #selector(onPasteboardChanged(_:)), name: .NSPasteBoardDidChange, object: nil)
+        timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { (t) in
+            if self.lastChangeCount != self.pasteboard.changeCount {
+                self.lastChangeCount = self.pasteboard.changeCount
+                NotificationCenter.default.post(name: .NSPasteBoardDidChange, object: self.pasteboard)
+            }
+        }
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
@@ -165,7 +175,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func addItemToMenu(item: NSMenuItem){
         menu.insertItem(item, at: index + 1)
-        index+=1
+        index+=1	
     }
     
     @objc func copyIt(sender: NSMenuItem){
@@ -213,6 +223,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         let paramFromCommandLine = String(text[start..<end])
                         NSPasteboard.general.clearContents()
                         entry.append(paramFromCommandLine)
+                        types.append("public.utf8-plain-text")
                         var newItem : NSMenuItem? = nil
                         newItem = NSMenuItem(title: String(paramFromCommandLine), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
                         newItem!.representedObject = index as Int
@@ -223,5 +234,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
         }
     }
+    
+    @objc func onPasteboardChanged(_ notification: Notification){
+        guard let pb = notification.object as? NSPasteboard else { return }
+        guard let items = pb.pasteboardItems else { return }
+        guard let item = items.first?.string(forType: .string) else { return } // you should handle multiple types
+        var currentDateTime = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeStyle = .medium
+        let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
+        print("\(copyTimeStamp) | '\(item)'")
+    }
+}
+extension NSNotification.Name{
+    static let NSPasteBoardDidChange = NSNotification.Name("pasteboardDidChangeNotification")
 }
 
