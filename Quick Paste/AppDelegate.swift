@@ -30,7 +30,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         item?.button?.image = NSImage(named: "paste")
         menu.addItem(NSMenuItem(title: "Bind It", action: #selector(AppDelegate.bindIt), keyEquivalent: "b"))
         menu.addItem(NSMenuItem.separator())
-        print (menu.item(at: 1))
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))
         item?.menu = menu
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
@@ -106,78 +105,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             newItem = NSMenuItem(title: String(title), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
         }
         if type == "public.utf8-plain-text"{
-            if let indexEndOfTitle = title.firstIndex(of: "(") as String.Index?{
-                //get string before "("
-                if(firstParenthesisEntry){
-                    maxCharacterSize = indexEndOfTitle.encodedOffset < maxCharacterSize ? indexEndOfTitle.encodedOffset : maxCharacterSize
-                    firstParenthesisEntry = false
-                }
-                else{
-                    //utilize the space as much as possible as long as it doesn't exceed ( entry's max size
-                    maxCharacterSize = indexEndOfTitle.encodedOffset > maxCharacterSize ? indexEndOfTitle.encodedOffset : maxCharacterSize
-                }
-                //            print("\(index)" + ", " + "\(maxCharacterSize)")
-                newItem = NSMenuItem(title: String(title[..<indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-            }else{
-                //no "(" present in first line, link or email
-                if let indexOfAt = title.firstIndex(of: "@") as String.Index?{
-                    //email
-                    let start = title.index(indexOfAt, offsetBy: 1)
-                    let end = title.lastIndex(of: ".")!
-                    let institue = String(title[start..<end])
-                    newItem = NSMenuItem(title: institue.uppercased(), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-                }else{
-                    //only . present
-                    if let end = title.lastIndex(of: ".") as String.Index?{
-                        //default start form startIndex
-                        var start = title.startIndex
-                        //point to last . since end always be the last .
-                        //                let end = title.lastIndex(of: ".")!
-                        //point to first .
-                        let indexPossibleStartHost = title.firstIndex(of: ".")!
-                        //if has http or https prefix, start from 3 offset from colon
-                        if title.hasPrefix("http://")||title.hasPrefix("https://"){
-                            let indexEndOfProtocol = title.firstIndex(of: ":")!
-                            //point to first char after :// for link like github and leetcode
-                            start = title.index(indexEndOfProtocol, offsetBy: 3)
-                        }
-                        if(indexPossibleStartHost.encodedOffset != end.encodedOffset){
-                            //piont to first . for link like linkedin
-                            start = title.index(indexPossibleStartHost, offsetBy: 1)
-                        }
-                        let host = String(title[start..<end])
-                        print (host)
-                        newItem = NSMenuItem(title: host, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-                        if(host == "stackoverflow"){
-                            newItem?.image = NSImage(named: "stackoverflow")
-                            newItem?.title = ""
-                        }
-                        if(host == "linkedin"){
-                            newItem?.image = NSImage(named: "linkedin")
-                            newItem?.title = ""
-                        }
-                        if(host == "github"){
-                            newItem?.image = NSImage(named: "github")
-                            newItem?.title = ""
-                        }
-                    }else{
-                        //no . use space to separate no space simply return first element in splitted array
-                        let words = title.split(separator: " ")
-                        var preview = words[0]
-                        print(preview.count)
-                        for word in words{
-                            if(word == words[0]){continue}
-                            //only preview whole word never cut in the middle
-                            if(preview.count + word.count < maxCharacterSize){
-                                preview += word + " "
-                                //                            print(preview.count)
-                            }else{
-                                break
-                            }
-                        }
-                        newItem = NSMenuItem(title: String(preview), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-                    }
-                }
+            let afterParse = parseResumeFormat(title: title)
+            newItem = NSMenuItem(title: afterParse, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+            if(afterParse == "stackoverflow"){
+                newItem?.image = NSImage(named: "stackoverflow")
+                newItem?.title = ""
+            }
+            if(afterParse == "linkedin"){
+                newItem?.image = NSImage(named: "linkedin")
+                newItem?.title = ""
+            }
+            if(afterParse == "github"){
+                newItem?.image = NSImage(named: "github")
+                newItem?.title = ""
             }
         }
         newItem!.representedObject = index - 1 as Int
@@ -191,7 +131,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func copyIt(sender: NSMenuItem){
         print("---------copyIt--------------")
-        //important setep
+        //important step
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(entry[sender.representedObject as! Int], forType: NSPasteboard.PasteboardType.init(types[sender.representedObject as! Int]))
         // avoid after clicking a file, the original utf8 wouldn't present in pasteboard as we only need url to refer the file,
@@ -222,28 +162,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func handleAppleEvent(event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
-        menu.addItem(NSMenuItem.separator())
-        //        print (menu.item(at: 1))
+//        menu.addItem(NSMenuItem.separator())
         if let text = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue?.removingPercentEncoding {
-//                print(text)
-                if text.contains("readlog://") {
-                    if let indexOfSemiColon = text.firstIndex(of: ":") as String.Index?{
-                        if(firstTime){
-                            menu.insertItem(NSMenuItem.separator(), at: 1)
-                            firstTime = false
-                        }
-                        let start = text.index(indexOfSemiColon, offsetBy: 3)
-                        let end = text.endIndex
-                        let paramFromCommandLine = String(text[start..<end])
-                        NSPasteboard.general.clearContents()
-                        print("url scheme message is: \(paramFromCommandLine)")
-                        entry.append(paramFromCommandLine)
-                        titles.append(paramFromCommandLine)
-                        types.append("public.utf8-plain-text")
-                        addItemToMenu(item: createMenuItem(title: titles[index-1], type: types[index-1]))
-                        NSPasteboard.general.setString(paramFromCommandLine, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+            if text.contains("readlog://") {
+                if let indexOfSemiColon = text.firstIndex(of: ":") as String.Index?{
+                    if(firstTime){
+                        menu.insertItem(NSMenuItem.separator(), at: 1)
+                        firstTime = false
                     }
+                    let start = text.index(indexOfSemiColon, offsetBy: 3)
+                    let end = text.endIndex
+                    let paramFromCommandLine = String(text[start..<end])
+                    NSPasteboard.general.clearContents()
+                    print("url scheme message is: \(paramFromCommandLine)")
+                    entry.append(paramFromCommandLine)
+                    titles.append(paramFromCommandLine)
+                    types.append("public.utf8-plain-text")
+                    addItemToMenu(item: createMenuItem(title: titles[index-1], type: types[index-1]))
+                    NSPasteboard.general.setString(paramFromCommandLine, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
                 }
+            }
         }
     }
     
@@ -257,7 +195,78 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
         print("\(copyTimeStamp) | '\(item)'")
     }
+    //need refactor
+    @objc func parseResumeFormat(title: String)->String{
+        var res = ""
+        if let indexEndOfTitle = title.firstIndex(of: "(") as String.Index?{
+            //get string before "("
+            if(firstParenthesisEntry){
+                maxCharacterSize = indexEndOfTitle.encodedOffset < maxCharacterSize ? indexEndOfTitle.encodedOffset : maxCharacterSize
+                firstParenthesisEntry = false
+            }
+            else{
+                //utilize the space as much as possible as long as it doesn't exceed ( entry's max size
+                maxCharacterSize = indexEndOfTitle.encodedOffset > maxCharacterSize ? indexEndOfTitle.encodedOffset : maxCharacterSize
+            }
+            //            print("\(index)" + ", " + "\(maxCharacterSize)")
+//            newItem = NSMenuItem(title: String(title[..<indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+            res = String(title[..<indexEndOfTitle])
+        }else{
+            //no "(" present in first line, link or email
+            if let indexOfAt = title.firstIndex(of: "@") as String.Index?{
+                //email
+                let start = title.index(indexOfAt, offsetBy: 1)
+                let end = title.lastIndex(of: ".")!
+                let institue = String(title[start..<end])
+//                newItem = NSMenuItem(title: institue.uppercased(), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+                res = institue.uppercased()
+            }else{
+                //only . present
+                if let end = title.lastIndex(of: ".") as String.Index?{
+                    //default start form startIndex
+                    var start = title.startIndex
+                    //point to last . since end always be the last .
+                    //                let end = title.lastIndex(of: ".")!
+                    //point to first .
+                    let indexPossibleStartHost = title.firstIndex(of: ".")!
+                    //if has http or https prefix, start from 3 offset from colon
+                    if title.hasPrefix("http://")||title.hasPrefix("https://"){
+                        let indexEndOfProtocol = title.firstIndex(of: ":")!
+                        //point to first char after :// for link like github and leetcode
+                        start = title.index(indexEndOfProtocol, offsetBy: 3)
+                    }
+                    if(indexPossibleStartHost.encodedOffset != end.encodedOffset){
+                        //piont to first . for link like linkedin
+                        start = title.index(indexPossibleStartHost, offsetBy: 1)
+                    }
+                    let host = String(title[start..<end])
+                    print (host)
+//                    newItem = NSMenuItem(title: host, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+                    res = host
+                }else{
+                    //no . use space to separate no space simply return first element in splitted array
+                    let words = title.split(separator: " ")
+                    var preview = words[0]
+                    print(preview.count)
+                    for word in words{
+                        if(word == words[0]){continue}
+                        //only preview whole word never cut in the middle
+                        if(preview.count + word.count < maxCharacterSize){
+                            preview += word + " "
+                            //                            print(preview.count)
+                        }else{
+                            break
+                        }
+                    }
+//                    newItem = NSMenuItem(title: String(preview), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+                    res = String(preview)
+                }
+            }
+        }
+        return res
+    }
 }
+
 extension NSNotification.Name{
     static let NSPasteBoardDidChange = NSNotification.Name("pasteboardDidChangeNotification")
 }
