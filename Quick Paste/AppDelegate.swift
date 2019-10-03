@@ -7,6 +7,7 @@
 //
 
 import Cocoa
+import CoreSpotlight
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -24,6 +25,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var timer: Timer!
     var lastChangeCount: Int = 0
     let pasteboard = NSPasteboard.general
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -125,6 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func addItemToMenu(item: NSMenuItem){
+        indexItem(item: createSearhableItem(index-1))
         menu.insertItem(item, at: index + 1)
         index+=1
     }
@@ -195,6 +198,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
         print("\(copyTimeStamp) | '\(item)'")
     }
+    
+    func createSearhableItem(_ index: Int)->CSSearchableItem{
+        let searchableAttributeSet = CSSearchableItemAttributeSet.init(itemContentType: kUTTypeData as String)
+        searchableAttributeSet.title = titles[index]
+        searchableAttributeSet.contentDescription = entry[index]
+        searchableAttributeSet.kind = types[index]
+        let searchableItem = CSSearchableItem.init(uniqueIdentifier: String(index), domainIdentifier: "", attributeSet: searchableAttributeSet)
+        return searchableItem
+    }
+    
+    func indexItem(item: CSSearchableItem){
+        CSSearchableIndex.default().indexSearchableItems([item]){error in
+            if let error = error {
+                print("Indexing error: \(error.localizedDescription)")
+            } else {
+                print("Search item successfully indexed!")
+            }
+        }
+    }
+    
     //need refactor
     @objc func parseResumeFormat(title: String)->String{
         var res = ""

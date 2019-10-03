@@ -9,13 +9,17 @@ Initially it is just a simple tool to facilate my job application filling proces
 3. Support custom url scheme, run `open "readlog://textwanttosend"`in terminal would copy the text to menu. 
 4. Support local file and folder
 5. Log copy 
+6. Support search binded item in spotlight
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
 - [x] fix custom url scheme crash
 - [x] clean file representation
+- [x] binded item searchable
+- [ ] file icon 
+- [ ] split file if necessary
+- [ ] datamodel or class ?
 - [ ] restrict menu size
 - [ ] duplicate check
-- [ ] file icon 
 
  A lot to do.
