@@ -17,6 +17,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var titles: [String] = []
     var entry: [String] = []
     var types: [String] = []
+    var icons: [Data] = []
     var index = 1
     var firstTime = true
     var firstParenthesisEntry = true
@@ -57,6 +58,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         for item in items{
             print(item)
+            for type in item.types{
+                print ("\(type.rawValue): \(item.data(forType: kUTTypeAppleICNS as NSPasteboard.PasteboardType))")
+                print ("\(type.rawValue): \(item.data(forType: type))")
+                print ("\(type.rawValue): \(item.propertyList(forType: type))")
+            }
             let preferType = item.availableType(from: preferTypes)!
             print(preferType)
             if preferType.rawValue == "public.utf8-plain-text"{
@@ -66,11 +72,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     print("plaintext is: \(copiedContent)")
                     titles.append(copiedContent)
                     entry.append(copiedContent)
+                    //store empty data for utf8 for now
+                    icons.append(Data())
                     types.append(preferType.rawValue)
                 }
             }
             else if preferType.rawValue == "public.file-url"{
                 if let path = item.string(forType: preferType){
+                    if let data = item.data(forType: NSPasteboard.PasteboardType.init("com.apple.icns")){
+                        icons.append(data)
+                    }
                     if let title = item.string(forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text")){
                         titles.append(title)
                     }
@@ -105,6 +116,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print ("\(title), \(type)")
         if type == "public.file-url" {
             newItem = NSMenuItem(title: String(title), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+            //too large
+            //newItem?.image = NSImage(data: icons[index-1])
+            let rawImage = NSImage(data: icons[index-1])
+            newItem?.image = rawImage?.resizedImageTo(sourceImage: rawImage!, newSize: NSSize.init(width: 20, height: 20))
+            
         }
         if type == "public.utf8-plain-text"{
             let afterParse = parseResumeFormat(title: title)
@@ -181,6 +197,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     entry.append(paramFromCommandLine)
                     titles.append(paramFromCommandLine)
                     types.append("public.utf8-plain-text")
+                    icons.append(Data())
                     addItemToMenu(item: createMenuItem(title: titles[index-1], type: types[index-1]))
                     NSPasteboard.general.setString(paramFromCommandLine, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
                 }
@@ -196,6 +213,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .medium
         let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
+        //for now we only log copy event, later would be searchable, but definitely not auto bind to menu
+        //show log your iphone or ipad's paste as well thanks cross device paste, which means iphone's copy history could be searched once we make copy event searchable
         print("\(copyTimeStamp) | '\(item)'")
     }
     
@@ -294,3 +313,22 @@ extension NSNotification.Name{
     static let NSPasteBoardDidChange = NSNotification.Name("pasteboardDidChangeNotification")
 }
 
+extension NSImage {
+    func resizedImageTo(sourceImage: NSImage, newSize: NSSize) -> NSImage?{
+        if sourceImage.isValid == false {
+            return nil
+        }
+        let representation = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: Int(newSize.width), pixelsHigh: Int(newSize.height), bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .calibratedRGB, bytesPerRow: 0, bitsPerPixel: 0)
+        representation?.size = newSize
+        
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext.init(bitmapImageRep: representation!)
+        sourceImage.draw(in: NSRect(x: 0, y: 0, width: newSize.width, height: newSize.height), from: NSZeroRect, operation: .copy, fraction: 1.0)
+        NSGraphicsContext.restoreGraphicsState()
+        
+        let newImage = NSImage(size: newSize)
+        newImage.addRepresentation(representation!)
+        
+        return newImage
+    }
+}

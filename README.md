@@ -8,18 +8,23 @@ Initially it is just a simple tool to facilate my job application filling proces
 2. Key equavilant support from 1 to 9
 3. Support custom url scheme, run `open "readlog://textwanttosend"`in terminal would copy the text to menu. 
 4. Support local file and folder
-5. Log copy 
+5. Log copy from mac and ios devices
 6. Support search binded item in spotlight
-## To Do
+7. Show file icon in menu(not that useful since most file has extension shown, mainly for further image related feature)
+## To Do(small or priority)
 - [x] key binding, menu seperator 
 - [x] support file
 - [x] fix custom url scheme crash
 - [x] clean file representation
 - [x] binded item searchable
-- [ ] file icon 
+- [x] file icon 
 - [ ] split file if necessary
 - [ ] datamodel or class ?
 - [ ] restrict menu size
 - [ ] duplicate check
-
+- [ ] resize image should fit retina
+## Feature
+- [ ] spotlight thumbnail
+- [ ] spotlight on tap redirect
+- [ ] copy event searchable
  A lot to do.
