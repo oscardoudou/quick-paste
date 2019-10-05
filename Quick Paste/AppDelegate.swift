@@ -216,6 +216,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //for now we only log copy event, later would be searchable, but definitely not auto bind to menu
         //show log your iphone or ipad's paste as well thanks cross device paste, which means iphone's copy history could be searched once we make copy event searchable
         print("\(copyTimeStamp) | '\(item)'")
+        indexItem(item: createSearhableItem(item, copyTimeStamp))
+        
+    }
+    
+    func createSearhableItem(_ title: String, _ timestamp: String)->CSSearchableItem{
+        let searchableAttributeSet = CSSearchableItemAttributeSet.init(itemContentType: kUTTypeData as String)
+        searchableAttributeSet.title = title
+        searchableAttributeSet.contentDescription = timestamp
+        searchableAttributeSet.kind = "public.utf8-plain-text"
+        let searchableItem = CSSearchableItem.init(uniqueIdentifier: nil, domainIdentifier: "", attributeSet: searchableAttributeSet)
+        return searchableItem
     }
     
     func createSearhableItem(_ index: Int)->CSSearchableItem{
@@ -223,6 +234,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         searchableAttributeSet.title = titles[index]
         searchableAttributeSet.contentDescription = entry[index]
         searchableAttributeSet.kind = types[index]
+        //thumbnail available only for png pdf JPEG(without extension)
+        //currently contentURL gives png thumbnail, thumbnailURL do nothing
+        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: entry[index])
+//        searchableAttributeSet.thumbnailURL = URL.init(fileURLWithPath: entry[index])
+        //path not showable when hold command
+//        print("path converted from url: \(URL.init(fileURLWithPath: entry[index]).path)")
+        searchableAttributeSet.path = URL.init(fileURLWithPath: entry[index]).path
+        let indexEndOfColon = entry[index].firstIndex(of: ":")!
+        let start = entry[index].index(indexEndOfColon, offsetBy: 3)
+        print("path extract from url: \(String(entry[index][start...]))")
+        searchableAttributeSet.path = String(entry[index][start...])
+//        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: String(entry[index][start...]))
         let searchableItem = CSSearchableItem.init(uniqueIdentifier: String(index), domainIdentifier: "", attributeSet: searchableAttributeSet)
         return searchableItem
     }

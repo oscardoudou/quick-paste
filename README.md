@@ -24,7 +24,7 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [ ] duplicate check
 - [ ] resize image should fit retina
 ## Feature
-- [ ] spotlight thumbnail
+- [x] spotlight thumbnail(for now only work for part of the file extension, probably depend on the size)
 - [ ] spotlight on tap redirect
-- [ ] copy event searchable
+- [x] copy event searchable(if bind it late, would result two searchableItem)
  A lot to do.
