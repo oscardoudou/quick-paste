@@ -241,10 +241,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //path not showable when hold command
 //        print("path converted from url: \(URL.init(fileURLWithPath: entry[index]).path)")
         searchableAttributeSet.path = URL.init(fileURLWithPath: entry[index]).path
-        let indexEndOfColon = entry[index].firstIndex(of: ":")!
-        let start = entry[index].index(indexEndOfColon, offsetBy: 3)
-        print("path extract from url: \(String(entry[index][start...]))")
-        searchableAttributeSet.path = String(entry[index][start...])
+//        let indexEndOfColon = entry[index].firstIndex(of: ":")!
+//        let start = entry[index].index(indexEndOfColon, offsetBy: 3)
+//        print("path extract from url: \(String(entry[index][start...]))")
+//        searchableAttributeSet.path = String(entry[index][start...])
 //        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: String(entry[index][start...]))
         let searchableItem = CSSearchableItem.init(uniqueIdentifier: String(index), domainIdentifier: "", attributeSet: searchableAttributeSet)
         return searchableItem
