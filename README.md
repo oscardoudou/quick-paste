@@ -22,9 +22,12 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [ ] datamodel or class ?
 - [ ] restrict menu size
 - [ ] duplicate check
-- [ ] resize image should fit retina
 ## Feature
-- [x] spotlight thumbnail(for now only work for part of the file extension, probably depend on the size)
 - [ ] spotlight on tap redirect
-- [x] copy event searchable(if bind it late, would result two searchableItem)
+- [ ] remove item from menu bar 
+## Issue
+- [ ] copy event searchable(only work for text, seems like a tough issue)
+- [ ] copy event searchable(if bind it later, would result two searchableItem)
+- [ ] spotlight thumbnail(only work for part of the file extension, probably depend on the size)
+- [ ] resized icon should fit retina sceen
  A lot to do.
