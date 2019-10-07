@@ -19,15 +19,15 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [x] binded item searchable
 - [x] file icon 
 - [ ] split file if necessary
-- [ ] datamodel or class ?
+- [ ] use core data managed object and corresponding class(currently no subclass demand) 
 - [ ] restrict menu size
 - [ ] duplicate check
 ## Feature
-- [ ] spotlight on tap redirect
+- [ ] spotlight on tap redirect(work for some file like pdf, zip and doc, need further test but definitely need implement continued activity function)
 - [ ] remove item from menu bar 
 ## Issue
 - [ ] copy event searchable(only work for text, seems like a tough issue)
 - [ ] copy event searchable(if bind it later, would result two searchableItem)
-- [ ] spotlight thumbnail(only work for part of the file extension, probably depend on the size)
+- [ ] spotlight thumbnail(only work for part of the file extension, even same extension not all able to quick look)
 - [ ] resized icon should fit retina sceen
  A lot to do.
