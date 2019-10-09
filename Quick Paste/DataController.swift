@@ -42,20 +42,13 @@ public class DataController: NSObject{
         return persistentContainer.viewContext
     }
     public func createCopied(id: Int, title: String, path: String = "", type: String, data: Data = Data(), timestamp: Date){
-//        let context = persistentContainer.viewContext
         let copied = NSEntityDescription.insertNewObject(forEntityName: "Copied", into: context) as! Copied
         copied.id = Int64(id)
-        print("\(copied.id)")
         copied.name = title
-        print("\(copied.name)")
         copied.path = path
-        print("\(copied.path)")
         copied.thumbnail = data
-        print("\(copied.thumbnail)")
         copied.timestamp = timestamp
-        print("\(copied.timestamp)")
         copied.type = type
-        print("\(copied.type)")
         print ("copied object \(copied.id) is set")
         do{
             try context.save()
@@ -68,8 +61,6 @@ public class DataController: NSObject{
     }
     
     public func fetch(id: Int)->Copied{
-//        retrieve NSManagedObjectContext
-//        let context = persistentContainer.viewContext
 //        construct fetchRequest
         let fetchRequest = NSFetchRequest<Copied>(entityName: "Copied")
 //        use predicate filter fetchRequest
@@ -84,9 +75,6 @@ public class DataController: NSObject{
             print("\(copieds[0].timestamp ?? Date.init(timeIntervalSince1970: 1))")
             print("\(copieds[0].type ?? "TYPE" ) ")
             res = copieds[0]
-//            for (i, copied) in copieds.enumerated(){
-//                    print("Copied \(i): ")
-//            }
         }catch let error{
             print(" ❌ Failed to fetch Copied: \(error)")
         }

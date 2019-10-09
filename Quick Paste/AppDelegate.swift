@@ -33,7 +33,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))
         item?.menu = menu
+        //url scheme
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+        //add pasteboard observer/listener to notification center, center will post onPasteboardChanged when be notified
         NotificationCenter.default.addObserver(self, selector: #selector(onPasteboardChanged(_:)), name: .NSPasteBoardDidChange, object: nil)
         timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { (t) in
             if self.lastChangeCount != self.pasteboard.changeCount {
@@ -53,8 +55,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Saves changes in the application's managed object context before the application terminates.
         self.saveContext()
     }
+    
     // MARK: - Core Data Saving support
-
     func saveContext () {
         let context = dataController.persistentContainer.viewContext
         if !context.commitEditing() {
@@ -72,6 +74,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
+    
+    //paste board changed handler
+    @objc func onPasteboardChanged(_ notification: Notification){
+        guard let pb = notification.object as? NSPasteboard else { return }
+        guard let items = pb.pasteboardItems else { return }
+        guard let item = items.first?.string(forType: .string) else { return } // you should handle multiple types
+        var currentDateTime = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeStyle = .medium
+        let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
+        //for now we only log copy event, could be searchable, before introducing duplicate will leave this as unsearchable
+        print("\(copyTimeStamp) | '\(item)'")
+        //index copy event
+    }
+    
+    
+    //status bar menu
     @objc func bindIt(){
         printPasteBoard()
         print("---------bindIt--------------")
@@ -157,6 +176,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         index+=1
     }
     
+    
+    //spotlight searchable
+    func createSearhableItem(id: Int, title: String, type: String, path: String = "", data: Data?)->CSSearchableItem{
+        let searchableAttributeSet = CSSearchableItemAttributeSet.init(itemContentType: kUTTypeData as String)
+        searchableAttributeSet.title = title
+        searchableAttributeSet.contentDescription = title
+        searchableAttributeSet.kind = type
+        //currently contentURL gives thumbnail, thumbnailURL do nothing
+        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: path)
+        searchableAttributeSet.path = URL.init(fileURLWithPath: path).path
+        let searchableItem = CSSearchableItem.init(uniqueIdentifier: String(id), domainIdentifier: "", attributeSet: searchableAttributeSet)
+        return searchableItem
+    }
+    
+    func indexItem(item: CSSearchableItem){
+        CSSearchableIndex.default().indexSearchableItems([item]){error in
+            if let error = error {
+                print("Indexing error: \(error.localizedDescription)")
+            } else {
+                print("Search item successfully indexed!")
+            }
+        }
+    }
+    
+    
+    //status bar copy
     @objc func copyIt(sender: NSMenuItem){
         print("---------copyIt--------------")
         //important step
@@ -185,10 +230,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc func quit(){
-        NSApplication.shared.terminate(self)
-    }
-
+    //url scheme event handler
     @objc func handleAppleEvent(event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
 //        menu.addItem(NSMenuItem.separator())
         if let text = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue?.removingPercentEncoding {
@@ -212,41 +254,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     addItemToMenu(item: newItem)
                     indexItem(item: newSearchableItem)
                 }
-            }
-        }
-    }
-    
-    @objc func onPasteboardChanged(_ notification: Notification){
-        guard let pb = notification.object as? NSPasteboard else { return }
-        guard let items = pb.pasteboardItems else { return }
-        guard let item = items.first?.string(forType: .string) else { return } // you should handle multiple types
-        var currentDateTime = Date()
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeStyle = .medium
-        let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
-        //for now we only log copy event, could be searchable, before introducing duplicate will leave this as unsearchable
-        print("\(copyTimeStamp) | '\(item)'")
-        //index copy event
-    }
-    
-    func createSearhableItem(id: Int, title: String, type: String, path: String = "", data: Data?)->CSSearchableItem{
-        let searchableAttributeSet = CSSearchableItemAttributeSet.init(itemContentType: kUTTypeData as String)
-        searchableAttributeSet.title = title
-        searchableAttributeSet.contentDescription = title
-        searchableAttributeSet.kind = type
-        //currently contentURL gives thumbnail, thumbnailURL do nothing
-        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: path)
-        searchableAttributeSet.path = URL.init(fileURLWithPath: path).path
-        let searchableItem = CSSearchableItem.init(uniqueIdentifier: String(id), domainIdentifier: "", attributeSet: searchableAttributeSet)
-        return searchableItem
-    }
-    
-    func indexItem(item: CSSearchableItem){
-        CSSearchableIndex.default().indexSearchableItems([item]){error in
-            if let error = error {
-                print("Indexing error: \(error.localizedDescription)")
-            } else {
-                print("Search item successfully indexed!")
             }
         }
     }
@@ -320,6 +327,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         return res
+    }
+    
+    @objc func quit(){
+        NSApplication.shared.terminate(self)
     }
 }
 
