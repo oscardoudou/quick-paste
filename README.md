@@ -11,23 +11,25 @@ Initially it is just a simple tool to facilate my job application filling proces
 5. Log copy from mac and ios devices
 6. Support search binded item in spotlight
 7. Show file icon in menu(not that useful since most file has extension shown, mainly for further image related feature)
-## To Do(small or priority)
+8. Use core data 
+## To Do
 - [x] key binding, menu seperator 
 - [x] support file
 - [x] fix custom url scheme crash
 - [x] clean file representation
 - [x] binded item searchable
 - [x] file icon 
-- [ ] split file if necessary
-- [ ] use core data managed object and corresponding class(currently no subclass demand) 
 - [ ] restrict menu size
 - [ ] duplicate check
+## Project Structure
+- [x] split file if necessary
+- [x] use core data managed object and corresponding class(currently no subclass) 
+- [ ] branch if necessary
 ## Feature
 - [ ] spotlight on tap redirect(work for some file like pdf, zip and doc, need further test but definitely need implement continued activity function)
 - [ ] remove item from menu bar 
 ## Issue
 - [ ] copy event searchable(only work for text, seems like a tough issue)
-- [ ] copy event searchable(if bind it later, would result two searchableItem)
-- [ ] spotlight thumbnail(only work for part of the file extension, even same extension not all able to quick look)
+- [ ] copy event searchable(if bind it later, would result two searchableItem, currently disbale copy event searchable)
+- [ ] spotlight thumbnail(only work for part of the file extension, even same extension would differ)
 - [ ] resized icon should fit retina sceen
- A lot to do.
