@@ -14,10 +14,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var item : NSStatusItem? = nil
     let menu = NSMenu()
-    var titles: [String] = []
-    var entry: [String] = []
-    var types: [String] = []
-    var icons: [Data] = []
     var index = 1
     var firstTime = true
     var firstParenthesisEntry = true
@@ -26,9 +22,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var timer: Timer!
     var lastChangeCount: Int = 0
     let pasteboard = NSPasteboard.general
+    var dataController: DataController!
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
+        dataController = DataController()
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item?.button?.image = NSImage(named: "paste")
         menu.addItem(NSMenuItem(title: "Bind It", action: #selector(AppDelegate.bindIt), keyEquivalent: "b"))
@@ -43,88 +41,100 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 NotificationCenter.default.post(name: .NSPasteBoardDidChange, object: self.pasteboard)
             }
         }
+        let defaults = UserDefaults.standard
+        let defaultValue = ["maxId" : ""]
+        defaults.register(defaults: defaultValue)
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
+        
+        // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+        // Saves changes in the application's managed object context before the application terminates.
+        self.saveContext()
+    }
+    // MARK: - Core Data Saving support
+
+    func saveContext () {
+        let context = dataController.persistentContainer.viewContext
+        if !context.commitEditing() {
+            NSLog("\(NSStringFromClass(type(of: self))) unable to commit editing before saving")
+        }
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                // Customize this code block to include application-specific recovery steps.
+                let nserror = error as NSError
+                NSApplication.shared.presentError(nserror)
+                print(nserror.userInfo)
+            }
+        }
     }
     
     @objc func bindIt(){
+        printPasteBoard()
         print("---------bindIt--------------")
         let items = NSPasteboard.general.pasteboardItems!
         if items.count == 0{
             print("items is: \(items)")
             return
         }
+        if(firstTime){
+            menu.insertItem(NSMenuItem.separator(), at: 1)
+            firstTime = false
+        }
+        var path: String
+        var data: Data
+        var title: String
         for item in items{
-            print(item)
-            for type in item.types{
-                print ("\(type.rawValue): \(item.data(forType: kUTTypeAppleICNS as NSPasteboard.PasteboardType))")
-                print ("\(type.rawValue): \(item.data(forType: type))")
-                print ("\(type.rawValue): \(item.propertyList(forType: type))")
-            }
+            //retrieve id from UserDefault which persistent after relaunch, avoid fetch multiple object associated with same id
+            let defaults = UserDefaults.standard
+            let id = defaults.string(forKey: "maxId") == "" ? 0 : Int(defaults.string(forKey: "maxId")!)!
+            print("id in appdelegate bindIt(): \(id)")
             let preferType = item.availableType(from: preferTypes)!
-            print(preferType)
+            print("Prefer type is: \(preferType)")
             if preferType.rawValue == "public.utf8-plain-text"{
-                if let copiedContent = item.string(forType: preferType){
-                    //important step
-                    NSPasteboard.general.clearContents()
-                    print("plaintext is: \(copiedContent)")
-                    titles.append(copiedContent)
-                    entry.append(copiedContent)
-                    //store empty data for utf8 for now
-                    icons.append(Data())
-                    types.append(preferType.rawValue)
-                }
+                title = item.string(forType: preferType) ?? "NoText"
+                NSPasteboard.general.clearContents()
+                print("plaintext is: \(title)")
+                dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date())
+                let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue)
+                let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, data: nil)
+                addItemToMenu(item: newItem)
+                indexItem(item: newSearchableItem)
             }
             else if preferType.rawValue == "public.file-url"{
-                if let path = item.string(forType: preferType){
-                    if let data = item.data(forType: NSPasteboard.PasteboardType.init("com.apple.icns")){
-                        icons.append(data)
-                    }
-                    if let title = item.string(forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text")){
-                        titles.append(title)
-                    }
-                    //important step
-                    NSPasteboard.general.clearContents()
-                    print("path is: \(path)")
-                    entry.append(path)
-                    types.append(preferType.rawValue)
-                }
+                path = item.string(forType: preferType) ?? "NoPath"
+                data = item.data(forType: NSPasteboard.PasteboardType.init("com.apple.icns")) ?? Data()
+                title = item.string(forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text")) ?? "NoFileName"
+                NSPasteboard.general.clearContents()
+                print("path is: \(path)")
+                dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date())
+                let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue, data: data)
+                let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, path: path, data: data)
+                addItemToMenu(item: newItem)
+                indexItem(item: newSearchableItem)
             }
             else{
 //                TODO
                 print(preferType.rawValue)
             }
-//                for data in item.data{
-//                    print (data.rawValue)
-//                }
         }
-        
-        if(firstTime){
-            menu.insertItem(NSMenuItem.separator(), at: 1)
-            firstTime = false
-        }
-        
-        let newItem = createMenuItem(title: titles[index-1], type: types[index-1])
-        addItemToMenu(item: newItem)
-        
     }
     
-    @objc func createMenuItem(title: String, type: String)->NSMenuItem{
+    @objc func createMenuItem(id: Int, title: String, type: String, data: Data = Data())->NSMenuItem{
         var newItem : NSMenuItem? = nil
         print ("\(title), \(type)")
         if type == "public.file-url" {
-            newItem = NSMenuItem(title: String(title), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-            //too large
-            //newItem?.image = NSImage(data: icons[index-1])
-            let rawImage = NSImage(data: icons[index-1])
+            newItem = NSMenuItem(title: String(title), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(id%9)")
+            let rawImage = NSImage(data: data)
             newItem?.image = rawImage?.resizedImageTo(sourceImage: rawImage!, newSize: NSSize.init(width: 20, height: 20))
             
         }
         if type == "public.utf8-plain-text"{
             let afterParse = parseResumeFormat(title: title)
-            newItem = NSMenuItem(title: afterParse, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
+            newItem = NSMenuItem(title: afterParse, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(id%9)")
             if(afterParse == "stackoverflow"){
                 newItem?.image = NSImage(named: "stackoverflow")
                 newItem?.title = ""
@@ -138,12 +148,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 newItem?.title = ""
             }
         }
-        newItem!.representedObject = index - 1 as Int
+        newItem!.representedObject = id as Int
         return newItem!
     }
     
     @objc func addItemToMenu(item: NSMenuItem){
-        indexItem(item: createSearhableItem(index-1))
         menu.insertItem(item, at: index + 1)
         index+=1
     }
@@ -152,12 +161,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("---------copyIt--------------")
         //important step
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(entry[sender.representedObject as! Int], forType: NSPasteboard.PasteboardType.init(types[sender.representedObject as! Int]))
-        // avoid after clicking a file, the original utf8 wouldn't present in pasteboard as we only need url to refer the file,
-        // but this would lead to titles array index out of range when binding it again using item itself(which only have url type no more utf8 type)
-        if types[sender.representedObject as! Int] != "public.utf8-plain-text"{
-            NSPasteboard.general.setString(titles[sender.representedObject as! Int], forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
-        }
+        let item = dataController.fetch(id: sender.representedObject as! Int)
+        print ("Copied \(item.id): \(item.type)")
+        NSPasteboard.general.setString(item.path!, forType: NSPasteboard.PasteboardType.init(item.type!))
+//        if item.type! != "public.utf8-plain-text"{
+        NSPasteboard.general.setString(item.name!, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+//        }
         print(sender.representedObject as! Int)
         print("we copy entry content to pasteboard")
         printPasteBoard()
@@ -165,7 +174,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func printPasteBoard(){
         //it is possible no copy at all, so it need to be optional
-        print("inside printPasteBoard")
+        print("---------inside printPasteBoard---------")
         if let items = NSPasteboard.general.pasteboardItems{
             for item in items{
                 for type in item.types{
@@ -189,17 +198,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                         menu.insertItem(NSMenuItem.separator(), at: 1)
                         firstTime = false
                     }
+                    let defaults = UserDefaults.standard
+                    let id = defaults.string(forKey: "maxId") == "" ? 0 : Int(defaults.string(forKey: "maxId")!)!
+                    print("id in appdelegate handleAppleEvent: \(id)")
                     let start = text.index(indexOfSemiColon, offsetBy: 3)
                     let end = text.endIndex
                     let paramFromCommandLine = String(text[start..<end])
                     NSPasteboard.general.clearContents()
                     print("url scheme message is: \(paramFromCommandLine)")
-                    entry.append(paramFromCommandLine)
-                    titles.append(paramFromCommandLine)
-                    types.append("public.utf8-plain-text")
-                    icons.append(Data())
-                    addItemToMenu(item: createMenuItem(title: titles[index-1], type: types[index-1]))
-                    NSPasteboard.general.setString(paramFromCommandLine, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+                    dataController.createCopied(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text", timestamp:Date())
+                    let newItem = createMenuItem(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text")
+                    let newSearchableItem = createSearhableItem(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text", data: nil)
+                    addItemToMenu(item: newItem)
+                    indexItem(item: newSearchableItem)
                 }
             }
         }
@@ -213,40 +224,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .medium
         let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
-        //for now we only log copy event, later would be searchable, but definitely not auto bind to menu
-        //show log your iphone or ipad's paste as well thanks cross device paste, which means iphone's copy history could be searched once we make copy event searchable
+        //for now we only log copy event, could be searchable, before introducing duplicate will leave this as unsearchable
         print("\(copyTimeStamp) | '\(item)'")
-        indexItem(item: createSearhableItem(item, copyTimeStamp))
-        
+        //index copy event
     }
     
-    func createSearhableItem(_ title: String, _ timestamp: String)->CSSearchableItem{
+    func createSearhableItem(id: Int, title: String, type: String, path: String = "", data: Data?)->CSSearchableItem{
         let searchableAttributeSet = CSSearchableItemAttributeSet.init(itemContentType: kUTTypeData as String)
         searchableAttributeSet.title = title
-        searchableAttributeSet.contentDescription = timestamp
-        searchableAttributeSet.kind = "public.utf8-plain-text"
-        let searchableItem = CSSearchableItem.init(uniqueIdentifier: nil, domainIdentifier: "", attributeSet: searchableAttributeSet)
-        return searchableItem
-    }
-    
-    func createSearhableItem(_ index: Int)->CSSearchableItem{
-        let searchableAttributeSet = CSSearchableItemAttributeSet.init(itemContentType: kUTTypeData as String)
-        searchableAttributeSet.title = titles[index]
-        searchableAttributeSet.contentDescription = entry[index]
-        searchableAttributeSet.kind = types[index]
-        //thumbnail available only for png pdf JPEG(without extension)
-        //currently contentURL gives png thumbnail, thumbnailURL do nothing
-        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: entry[index])
-//        searchableAttributeSet.thumbnailURL = URL.init(fileURLWithPath: entry[index])
-        //path not showable when hold command
-//        print("path converted from url: \(URL.init(fileURLWithPath: entry[index]).path)")
-        searchableAttributeSet.path = URL.init(fileURLWithPath: entry[index]).path
-//        let indexEndOfColon = entry[index].firstIndex(of: ":")!
-//        let start = entry[index].index(indexEndOfColon, offsetBy: 3)
-//        print("path extract from url: \(String(entry[index][start...]))")
-//        searchableAttributeSet.path = String(entry[index][start...])
-//        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: String(entry[index][start...]))
-        let searchableItem = CSSearchableItem.init(uniqueIdentifier: String(index), domainIdentifier: "", attributeSet: searchableAttributeSet)
+        searchableAttributeSet.contentDescription = title
+        searchableAttributeSet.kind = type
+        //currently contentURL gives thumbnail, thumbnailURL do nothing
+        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: path)
+        searchableAttributeSet.path = URL.init(fileURLWithPath: path).path
+        let searchableItem = CSSearchableItem.init(uniqueIdentifier: String(id), domainIdentifier: "", attributeSet: searchableAttributeSet)
         return searchableItem
     }
     
