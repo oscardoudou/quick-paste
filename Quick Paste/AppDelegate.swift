@@ -34,12 +34,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
           button.image = NSImage(named:"paste")
           button.action = #selector(togglePopover)
         }
-        popover.contentViewController = ViewController.freshController()
+        //grab the view controller and pass a Persistent Container Reference to a View Controller
+        if let viewController =  ViewController.freshController() as? ViewController{
+            viewController.container = dataController.persistentContainer
+            popover.contentViewController =  viewController
+        }
         //url scheme
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
         //add pasteboard observer/listener to notification center, center will post onPasteboardChanged when be notified
         NotificationCenter.default.addObserver(self, selector: #selector(onPasteboardChanged(_:)), name: .NSPasteBoardDidChange, object: nil)
-        timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { (t) in
+        //the interval 0.05 0.1 doesn't help, system unlikey trigger it at precisely 0.05 0.1 second intervals, system reserve the right
+        //not sure if using selector would help, so far 1 sec is somehow robust to record all the copy
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { (t) in
             if self.lastChangeCount != self.pasteboard.changeCount {
                 self.lastChangeCount = self.pasteboard.changeCount
                 NotificationCenter.default.post(name: .NSPasteBoardDidChange, object: self.pasteboard)
@@ -70,7 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
-        
+        timer.invalidate()
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         // Saves changes in the application's managed object context before the application terminates.
         dataController.saveContext()
@@ -90,6 +96,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //for now we only log copy event, could be searchable, before introducing duplicate will leave this as unsearchable
         print("\(copyTimeStamp) | '\(item)'")
         //index copy event
+        bindIt()
     }
     
     
@@ -103,7 +110,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         if(firstTime){
-            menu.insertItem(NSMenuItem.separator(), at: 1)
+//            menu.insertItem(NSMenuItem.separator(), at: 1)
             firstTime = false
         }
         var path: String
@@ -118,24 +125,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             print("Prefer type is: \(preferType)")
             if preferType.rawValue == "public.utf8-plain-text"{
                 title = item.string(forType: preferType) ?? "NoText"
-                NSPasteboard.general.clearContents()
+                //NSPasteboard.general.clearContents()
                 print("plaintext is: \(title)")
                 dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date())
                 let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue)
                 let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, data: nil)
-                addItemToMenu(item: newItem)
+                //addItemToMenu(item: newItem)
                 indexItem(item: newSearchableItem)
             }
             else if preferType.rawValue == "public.file-url"{
                 path = item.string(forType: preferType) ?? "NoPath"
                 data = item.data(forType: NSPasteboard.PasteboardType.init("com.apple.icns")) ?? Data()
                 title = item.string(forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text")) ?? "NoFileName"
-                NSPasteboard.general.clearContents()
+                //NSPasteboard.general.clearContents()
                 print("path is: \(path)")
                 dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date())
                 let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue, data: data)
                 let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, path: path, data: data)
-                addItemToMenu(item: newItem)
+                //addItemToMenu(item: newItem)
                 indexItem(item: newSearchableItem)
             }
             else{
@@ -249,12 +256,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     let start = text.index(indexOfSemiColon, offsetBy: 3)
                     let end = text.endIndex
                     let paramFromCommandLine = String(text[start..<end])
-                    NSPasteboard.general.clearContents()
+                    //NSPasteboard.general.clearContents()
                     print("url scheme message is: \(paramFromCommandLine)")
                     dataController.createCopied(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text", timestamp:Date())
                     let newItem = createMenuItem(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text")
                     let newSearchableItem = createSearhableItem(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text", data: nil)
-                    addItemToMenu(item: newItem)
+                    //addItemToMenu(item: newItem)
                     indexItem(item: newSearchableItem)
                 }
             }

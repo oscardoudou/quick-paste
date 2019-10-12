@@ -39,6 +39,7 @@ public class DataController: NSObject{
         })
         return container
     }()
+    //this stored property doesn't make sense, it make persistentContainer declared as lazy var no used
     var context: NSManagedObjectContext {
         return persistentContainer.viewContext
     }
