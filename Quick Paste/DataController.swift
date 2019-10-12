@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreData
+import Cocoa
 
 public class DataController: NSObject{
     // MARK: - Core Data stack
@@ -41,6 +42,24 @@ public class DataController: NSObject{
     var context: NSManagedObjectContext {
         return persistentContainer.viewContext
     }
+    // MARK: - Core Data Saving support
+    func saveContext () {
+        let context = persistentContainer.viewContext
+        if !context.commitEditing() {
+            NSLog("\(NSStringFromClass(type(of: self))) unable to commit editing before saving")
+        }
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                // Customize this code block to include application-specific recovery steps.
+                let nserror = error as NSError
+                NSApplication.shared.presentError(nserror)
+                print(nserror.userInfo)
+            }
+        }
+    }
+    
     public func createCopied(id: Int, title: String, path: String = "", type: String, data: Data = Data(), timestamp: Date){
         let copied = NSEntityDescription.insertNewObject(forEntityName: "Copied", into: context) as! Copied
         copied.id = Int64(id)

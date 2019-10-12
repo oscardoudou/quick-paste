@@ -23,16 +23,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var lastChangeCount: Int = 0
     let pasteboard = NSPasteboard.general
     var dataController: DataController!
+    let popover = NSPopover()
+    let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
+//         buildMenu()
         dataController = DataController()
-        item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item?.button?.image = NSImage(named: "paste")
-        menu.addItem(NSMenuItem(title: "Bind It", action: #selector(AppDelegate.bindIt), keyEquivalent: "b"))
-        menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))
-        item?.menu = menu
+        if let button = statusItem.button {
+          button.image = NSImage(named:"paste")
+          button.action = #selector(togglePopover)
+        }
+        popover.contentViewController = ViewController.freshController()
         //url scheme
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
         //add pasteboard observer/listener to notification center, center will post onPasteboardChanged when be notified
@@ -48,32 +50,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         defaults.register(defaults: defaultValue)
     }
 
+    @objc func togglePopover(_ sender: Any?) {
+      if popover.isShown {
+        closePopover(sender: sender)
+      } else {
+        showPopover(sender: sender)
+      }
+    }
+
+    func showPopover(sender: Any?) {
+      if let button = statusItem.button {
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+      }
+    }
+
+    func closePopover(sender: Any?) {
+      popover.performClose(sender)
+    }
+    
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
         
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         // Saves changes in the application's managed object context before the application terminates.
-        self.saveContext()
+        dataController.saveContext()
     }
     
-    // MARK: - Core Data Saving support
-    func saveContext () {
-        let context = dataController.persistentContainer.viewContext
-        if !context.commitEditing() {
-            NSLog("\(NSStringFromClass(type(of: self))) unable to commit editing before saving")
-        }
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                // Customize this code block to include application-specific recovery steps.
-                let nserror = error as NSError
-                NSApplication.shared.presentError(nserror)
-                print(nserror.userInfo)
-            }
-        }
-    }
-    
+
     
     //paste board changed handler
     @objc func onPasteboardChanged(_ notification: Notification){
@@ -328,7 +331,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         return res
     }
-    
+    //system menu
+    func buildMenu(){
+        item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        item?.button?.image = NSImage(named: "paste")
+        //construct the menu
+        menu.addItem(NSMenuItem(title: "Bind It", action: #selector(AppDelegate.bindIt), keyEquivalent: "b"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))
+        //set statusItem.menu to the menu we just set
+        item?.menu = menu
+    }
+    //legacy quit
     @objc func quit(){
         NSApplication.shared.terminate(self)
     }
