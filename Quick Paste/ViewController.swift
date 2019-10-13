@@ -76,42 +76,88 @@ extension ViewController{
 
 //this extension is important, but don't know the difference from class ViewController: NSViewController, NSFetchedResultsControllerDelegate
 extension ViewController: NSFetchedResultsControllerDelegate {
-    
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        tableView.beginUpdates()
+    }
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>){
+        tableView.endUpdates()
+    }
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,didChange anObject: Any, at indexPath: IndexPath?,for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?){
+        switch type {
+        case .insert:
+            if let newIndexPath = newIndexPath {
+                tableView.insertRows(at: [newIndexPath.item], withAnimation: .effectFade)
+            }
+        case .delete:
+            if let indexPath = indexPath{
+                tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
+            }
+        case .update:
+            if let indexPath = indexPath{
+                let row = indexPath.item
+                for column in 0..<tableView.numberOfColumns{
+                    if let cell = tableView.view(atColumn: column, row: row, makeIfNecessary: true) as? NSTableCellView{
+                        configureCell(cell: cell, row: row, column: column)
+                    }
+                }
+            }
+        case .move:
+            if let indexPath = indexPath, let newIndexPath = newIndexPath{
+                tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
+                tableView.insertRows(at: [newIndexPath.item], withAnimation: .effectFade)
+            }
+            
+        }
+    }
 }
 extension ViewController: NSTableViewDelegate {
     // 2/2 have to implement function to show core data in table view
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        var cellIdentifier: String = ""
+        var cell: NSTableCellView!
+        //probably should guard
+        let copied :Copied = fetchedResultsController.fetchedObjects![row]
+        let column = tableView.tableColumns.firstIndex(of: tableColumn!)!
+        switch column{
+        case 0:
+            cellIdentifier = "NameCellId"
+        case 1:
+            cellIdentifier = "TimeCellId"
+        case 2:
+            cellIdentifier = "OtherCellId"
+        default:
+            return nil
+        }
+        cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: nil) as? NSTableCellView
+        configureCell(cell: cell, row: row, column: column)
+        return cell
+    }
+    private func configureCell(cell: NSTableCellView, row: Int, column: Int){
         var image: NSImage?
         var name: String?
         var time: String?
         var other: String?
         var text: String?
-        var cellIdentifier: String = ""
         let dateFormatter = DateFormatter()
-        //probably should guard
-        let copied :Copied = fetchedResultsController.fetchedObjects![row]
-        if tableColumn == tableView.tableColumns[0]{
-//            image = NSImage(data: copied.thumbnail!)
+        let copied = fetchedResultsController.fetchedObjects![row]
+        switch column {
+        case 0:
             image = copied.thumbnail != nil ? NSImage(data: copied.thumbnail!) : NSImage(named: "stackoverflow")
             name = copied.name
             text = name
-            cellIdentifier = "NameCellId"
-        }else if (tableColumn == tableView.tableColumns[1]){
+        case 1:
             dateFormatter.timeStyle = .medium
             time = copied.timestamp != nil ? dateFormatter.string(from: copied.timestamp!) : "notime"
             text = time
-            cellIdentifier = "TimeCellId"
-        }else if(tableColumn == tableView.tableColumns[2]){
+        case 2:
             other = String(copied.id)
             text = other
-            cellIdentifier = "OtherCellId"
+        default:
+            break
         }
-        if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: nil) as? NSTableCellView{
-            cell.textField?.stringValue = text != nil ? text! : "default"
-            cell.imageView?.image = image ?? nil
-            return cell
-        }
-        return nil
+        cell.textField?.stringValue = text != nil ? text! : "default"
+        //we have a surprising bug: if text copied, even default stackoverflow image won't be set.The image would be blank, but next time you open if will show up
+        cell.imageView?.image = image ?? nil
     }
 }
 
