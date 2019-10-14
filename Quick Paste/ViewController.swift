@@ -47,6 +47,7 @@ class ViewController: NSViewController {
         }catch{
             fatalError("Failed to fecth entites: \(error)")
         }
+        copieds = fetchedResultsController.fetchedObjects
         tableView.delegate = self
         tableView.dataSource = self
         searchField.delegate = self

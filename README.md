@@ -17,6 +17,7 @@ Initially it is just a simple tool to facilate my job application filling proces
 11. Able to track most copy activities
 12. Change copy->bindIt(create object) logic to copy(automatically create object)
 13. Support naive search in search field with NSSearchFieldDelegate(predicate update, fetch and reload)
+14. On click copy to pasteboard
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
@@ -24,12 +25,12 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [x] clean file representation
 - [x] binded item searchable
 - [x] file icon 
-- [ ] restrict menu size
 - [ ] duplicate check
 - [x] onPasteboardChange() catch all the copy activity
 - [x] table should update automatically after persistent container update
 - [x] support in-app naive search 
 - [x] entry on select could be copied(reuse copyIt)
+- [x] retrieve object based on tableview.index, especially when after apply search(filtered history row index has nothing to do with id, temp copied array)
 ## Project Structure
 - [x] split file if necessary
 - [x] use core data managed object and corresponding class(currently no subclass)
@@ -44,4 +45,3 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [ ] resized icon should fit retina display
 - [x] avoid save most recent copied since last close, which end up duplicate search history. (use property firstTime check)
 - [x] copy it should not add new record, avoid this type of changeCount being trigger (set lastChangeCount same to changeCount)
-- [x] how retrieve object based on tableview.index, especially when after apply search(filtered history row index has nothing to do with id, temp copied array)
