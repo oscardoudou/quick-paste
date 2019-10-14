@@ -16,6 +16,7 @@ Initially it is just a simple tool to facilate my job application filling proces
 10. Use NSFetchedResultsController along with NSTableViewDelegate and NSTableViewDataSource showing data in table view 
 11. Able to track most copy activities
 12. Change copy->bindIt(create object) logic to copy(automatically create object)
+13. Support naive search in search field with NSSearchFieldDelegate(predicate update, fetch and reload)
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
@@ -26,14 +27,16 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [ ] restrict menu size
 - [ ] duplicate check
 - [x] onPasteboardChange() catch all the copy activity
-- [ ] table should update automatically after persistent container update, now only change view when app relaunch
+- [x] table should update automatically after persistent container update
+- [x] support in-app naive search 
+- [ ] entry on tap could be copied(reuse copyIt or support pasteboardtype)
 ## Project Structure
 - [x] split file if necessary
-- [x] use core data managed object and corresponding class(currently no subclass) 
+- [x] use core data managed object and corresponding class(currently no subclass)
 - [x] show history in popover and table instead of status bar menu
 ## Feature
 - [ ] spotlight on tap redirect(work for some file like pdf, zip and doc, need further test but definitely need implement continued activity function)
-- [ ] remove item from menu bar 
+- [ ] remove copied activity record from history
 ## Issue
 - [ ] copy event searchable(only work for text, seems like a tough issue)
 - [ ] copy event searchable(if bind it later, would result two searchableItem, currently disbale copy event searchable)

@@ -128,7 +128,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 //NSPasteboard.general.clearContents()
                 print("plaintext is: \(title)")
                 dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date())
-                let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue)
+                //let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue)
                 let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, data: nil)
                 //addItemToMenu(item: newItem)
                 indexItem(item: newSearchableItem)
@@ -140,7 +140,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 //NSPasteboard.general.clearContents()
                 print("path is: \(path)")
                 dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date())
-                let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue, data: data)
+                //let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue, data: data)
                 let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, path: path, data: data)
                 //addItemToMenu(item: newItem)
                 indexItem(item: newSearchableItem)
@@ -151,7 +151,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
-    
+    //deprecated createMenuItem
     @objc func createMenuItem(id: Int, title: String, type: String, data: Data = Data())->NSMenuItem{
         var newItem : NSMenuItem? = nil
         print ("\(title), \(type)")
@@ -180,7 +180,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         newItem!.representedObject = id as Int
         return newItem!
     }
-    
+    //depreacated addItemToMenu
     @objc func addItemToMenu(item: NSMenuItem){
         menu.insertItem(item, at: index + 1)
         index+=1
@@ -338,7 +338,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         return res
     }
-    //system menu
+    //deprecated system menu
     func buildMenu(){
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         item?.button?.image = NSImage(named: "paste")

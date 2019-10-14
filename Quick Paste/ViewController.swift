@@ -11,15 +11,20 @@ import CoreData
 
 class ViewController: NSViewController {
 
-    @IBOutlet weak var SearchField: NSSearchFieldCell!
+    @IBOutlet weak var searchField: NSSearchField!
     @IBOutlet weak var tableView: NSTableView!
     var container: NSPersistentContainer!
-    
+    var fetchPredicate : NSPredicate? {
+        didSet {
+            fetchedResultsController.fetchRequest.predicate = fetchPredicate
+        }
+    }
     private lazy var fetchedResultsController: NSFetchedResultsController<Copied> = {
         let context = container.viewContext
         let fetchRequest = NSFetchRequest<Copied>(entityName: "Copied")
         let nameSort = NSSortDescriptor(key: "timestamp", ascending: false)
         fetchRequest.sortDescriptors = [nameSort]
+        fetchRequest.predicate = fetchPredicate
         //here should refer directly from place where persistent initialize rather detour from appdelegate, but for now just leave it as it was
         //let context = dataController.persistentContainer
         let controller = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
@@ -41,7 +46,7 @@ class ViewController: NSViewController {
         }
         tableView.delegate = self
         tableView.dataSource = self
-
+        searchField.delegate = self
     }
 
     override var representedObject: Any? {
@@ -71,6 +76,33 @@ extension ViewController {
 extension ViewController{
     @IBAction func Quit(_ sender: Any) {
         NSApplication.shared.terminate(self)
+    }
+}
+extension ViewController: NSSearchFieldDelegate{
+    func controlTextDidChange(_ notification: Notification) {
+        if let field = notification.object as? NSSearchField {
+            let query = field.stringValue
+            if query.isEmpty {
+                fetchPredicate = nil
+            } else {
+                fetchPredicate = NSPredicate(format: "name contains[cd] %@", query)
+            }
+            requestData(with: fetchPredicate)
+        } else {
+            //not sure how to call super's method, gives me a error now
+            //super.controlTextDidChange(notification)
+        }
+    }
+    func requestData(with predicate : NSPredicate? = nil) {
+            //instead of modify the predicate of fetchRequest of NSFetchedResultsController, simply change property fetchPredicate value, add observer on the property, so everytime fetchPredicate change, the predicate of fetchRequest of NSFetchedResultsController change as well
+            //fetchedResultsController.fetchRequest.predicate = predicate
+        do{
+            try fetchedResultsController.performFetch()
+            //when you search, you dont actually add any new object, instead you change the fetchedResultsController's predicate, since this repointing, the context doesn't observer any changes. you need reload to refresh the view manually
+            tableView.reloadData()
+        } catch let error{
+            fatalError("Failed to request Data, \(error.localizedDescription) ")
+        }
     }
 }
 
@@ -164,7 +196,8 @@ extension ViewController: NSTableViewDelegate {
 extension ViewController: NSTableViewDataSource{
     // 1/2 have to implement function to show core data in table view
     func numberOfRows(in tableView: NSTableView) -> Int {
-        print("\(fetchedResultsController.fetchedObjects?.count)")
-        return fetchedResultsController.fetchedObjects?.count ?? 0
+        let count = fetchedResultsController.fetchedObjects?.count
+        print("Number of Rows: \(count)")
+        return count ?? 0
     }
 }
