@@ -29,7 +29,7 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [x] onPasteboardChange() catch all the copy activity
 - [x] table should update automatically after persistent container update
 - [x] support in-app naive search 
-- [ ] entry on tap could be copied(reuse copyIt or support pasteboardtype)
+- [x] entry on select could be copied(reuse copyIt)
 ## Project Structure
 - [x] split file if necessary
 - [x] use core data managed object and corresponding class(currently no subclass)
@@ -42,4 +42,6 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [ ] copy event searchable(if bind it later, would result two searchableItem, currently disbale copy event searchable)
 - [ ] spotlight thumbnail(only work for part of the file extension, even same extension would differ)
 - [ ] resized icon should fit retina display
-- [ ] avoid save most recent copied since last close, which end up duplicate search history. (But consider could read the most recent copied even before app running, this issue kind of reasonable.)
+- [x] avoid save most recent copied since last close, which end up duplicate search history. (use property firstTime check)
+- [x] copy it should not add new record, avoid this type of changeCount being trigger (set lastChangeCount same to changeCount)
+- [x] how retrieve object based on tableview.index, especially when after apply search(filtered history row index has nothing to do with id, temp copied array)

@@ -37,6 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //grab the view controller and pass a Persistent Container Reference to a View Controller
         if let viewController =  ViewController.freshController() as? ViewController{
             viewController.container = dataController.persistentContainer
+            //viewController.dataController = self.dataController
             popover.contentViewController =  viewController
         }
         //url scheme
@@ -48,7 +49,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { (t) in
             if self.lastChangeCount != self.pasteboard.changeCount {
                 self.lastChangeCount = self.pasteboard.changeCount
-                NotificationCenter.default.post(name: .NSPasteBoardDidChange, object: self.pasteboard)
+                //no sure when changeCount would be reset to 0 by system, better not use lastChangeCount as check
+                if !self.firstTime{
+                    NotificationCenter.default.post(name: .NSPasteBoardDidChange, object: self.pasteboard)
+                }
+                if self.firstTime{
+                    self.firstTime = false
+                }
             }
         }
         let defaults = UserDefaults.standard

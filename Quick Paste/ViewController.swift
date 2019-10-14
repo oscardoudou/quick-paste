@@ -14,11 +14,14 @@ class ViewController: NSViewController {
     @IBOutlet weak var searchField: NSSearchField!
     @IBOutlet weak var tableView: NSTableView!
     var container: NSPersistentContainer!
+    //store managedObject array of current view
+    var copieds : [Copied]?
     var fetchPredicate : NSPredicate? {
         didSet {
             fetchedResultsController.fetchRequest.predicate = fetchPredicate
         }
     }
+    let appDelegate = NSApplication.shared.delegate as! AppDelegate
     private lazy var fetchedResultsController: NSFetchedResultsController<Copied> = {
         let context = container.viewContext
         let fetchRequest = NSFetchRequest<Copied>(entityName: "Copied")
@@ -47,6 +50,7 @@ class ViewController: NSViewController {
         tableView.delegate = self
         tableView.dataSource = self
         searchField.delegate = self
+        tableView.action = #selector(copyIt)
     }
 
     override var representedObject: Any? {
@@ -54,8 +58,25 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
-
-
+    //table view copy
+    @objc func copyIt(sender: NSTableView){
+        print("---------copyIt--------------")
+        guard tableView.selectedRow >= 0,
+            let item: Copied = copieds![tableView.selectedRow] else {
+            return
+        }
+        //important step
+        NSPasteboard.general.clearContents()
+        //avoid post to notification center post to .NSPasteBoardDidChange, since clearContents would increment pasteboard changeCount
+        appDelegate.lastChangeCount = NSPasteboard.general.changeCount
+        print ("Copied \(item.id): \(item.type)")
+        NSPasteboard.general.setString(item.path!, forType: NSPasteboard.PasteboardType.init(item.type!))
+        NSPasteboard.general.setString(item.name!, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+        print("we copy entry content to pasteboard")
+        //Q: why can't call printPasteBoard() in AppDelegate? A: you need reference to Appdelegate
+        //AppDelegate.printPasteBoard()
+    }
+    
 }
 
 extension ViewController {
@@ -98,6 +119,8 @@ extension ViewController: NSSearchFieldDelegate{
             //fetchedResultsController.fetchRequest.predicate = predicate
         do{
             try fetchedResultsController.performFetch()
+            print ("Fetched \(fetchedResultsController.fetchedObjects?.count) objects")
+            copieds = fetchedResultsController.fetchedObjects
             //when you search, you dont actually add any new object, instead you change the fetchedResultsController's predicate, since this repointing, the context doesn't observer any changes. you need reload to refresh the view manually
             tableView.reloadData()
         } catch let error{
