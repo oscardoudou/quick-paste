@@ -45,3 +45,4 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [ ] resized icon should fit retina display
 - [x] avoid save most recent copied since last close, which end up duplicate search history. (use property firstTime check)
 - [x] copy it should not add new record, avoid this type of changeCount being trigger (set lastChangeCount same to changeCount)
+- [x] right after insert new history record click the history, not the same history record when paste it.(after each update, the tableview should be consistent with copieds)

@@ -164,6 +164,7 @@ extension ViewController: NSFetchedResultsControllerDelegate {
             }
             
         }
+        copieds = fetchedResultsController.fetchedObjects
     }
 }
 extension ViewController: NSTableViewDelegate {
