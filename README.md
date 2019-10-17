@@ -18,7 +18,8 @@ Initially it is just a simple tool to facilate my job application filling proces
 12. Change copy->bindIt(create object) logic to copy(automatically create object)
 13. Support naive search in search field with NSSearchFieldDelegate(predicate update, fetch and reload)
 14. On click copy to pasteboard
-15. Support screenshot copied to clipboard
+15. Record screenshots directly into clipboard
+16. Support local shortcut paste top 6 shown item
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
@@ -39,7 +40,8 @@ Initially it is just a simple tool to facilate my job application filling proces
 ## Feature
 - [ ] spotlight on tap redirect(work for some file like pdf, zip and doc, need further test but definitely need implement continued activity function)
 - [ ] remove copied activity record from history
-- [ ] record screenshot stored to clipboard.(Default is cmd+shift+3+ctrl and cmd+shift+4+ctrl) 
+- [x] record screenshot stored to clipboard.(Default is cmd+shift+3+ctrl and cmd+shift+4+ctrl) 
+- [x] local shortcut paste using cmd+1~6
 ## Issue
 - [ ] copy event searchable(only work for text, seems like a tough issue)
 - [ ] copy event searchable(if bind it later, would result two searchableItem, currently disbale copy event searchable)

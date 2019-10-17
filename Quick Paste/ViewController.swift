@@ -51,7 +51,12 @@ class ViewController: NSViewController {
         tableView.delegate = self
         tableView.dataSource = self
         searchField.delegate = self
-        tableView.action = #selector(copyIt)
+        tableView.action = #selector(copyOnSelect)
+        print("AXIsProcessTrusted(): \(AXIsProcessTrusted())")
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown){
+            self.keyDown(with: $0)
+            return $0
+        }
     }
 
     override var representedObject: Any? {
@@ -59,13 +64,27 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
-    //table view copy
-    @objc func copyIt(sender: NSTableView){
-        print("---------copyIt--------------")
+    //table view copy on select
+    @objc func copyOnSelect(sender: NSTableView){
+        print("---------copyOnSelect--------------")
         guard tableView.selectedRow >= 0,
             let item: Copied = copieds![tableView.selectedRow] else {
             return
         }
+        copyIt(item: item)
+    }
+    //table view copy on shortcut
+    @objc func copyOnNumber(numberKey: Int){
+        print("---------copyOnNumber--------------")
+        print("available copied count in current view: \(copieds!.count)")
+        guard numberKey <= copieds!.count,
+            let item: Copied = copieds![numberKey-1] else {
+            return
+        }
+        copyIt(item: item)
+    }
+    //base copy
+    private func copyIt(item: Copied){
         //important step
         NSPasteboard.general.clearContents()
         //avoid post to notification center post to .NSPasteBoardDidChange, since clearContents would increment pasteboard changeCount
@@ -80,7 +99,21 @@ class ViewController: NSViewController {
         print("we copy entry content to pasteboard")
         appDelegate.printPasteBoard()
     }
-    
+    //monitor for keydown event
+    override func keyDown(with event: NSEvent) {
+        //avoid crash caused by cmd+backspace
+        if(event.keyCode>=18 && event.keyCode<=23){
+            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask) {
+            //not using event.keycode is because keyCode of key 5 key 6 is reverse sequence
+            case [.command] where Int(event.characters!)! <= 6 && Int(event.characters!)! >= 1 :
+                print("command+\(event.characters!)")
+                copyOnNumber(numberKey: Int(event.characters!)!)
+            //other modifier keys
+            default:
+                break
+            }
+        }
+    }
 }
 
 extension ViewController {
