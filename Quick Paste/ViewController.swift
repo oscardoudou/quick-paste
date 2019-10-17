@@ -71,11 +71,14 @@ class ViewController: NSViewController {
         //avoid post to notification center post to .NSPasteBoardDidChange, since clearContents would increment pasteboard changeCount
         appDelegate.lastChangeCount = NSPasteboard.general.changeCount
         print ("Copied \(item.id): \(item.type)")
+        if(item.type == "public.png"){
+            NSPasteboard.general.setData(item.thumbnail!, forType: NSPasteboard.PasteboardType.init("public.png"))
+        }else{
         NSPasteboard.general.setString(item.path!, forType: NSPasteboard.PasteboardType.init(item.type!))
         NSPasteboard.general.setString(item.name!, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+        }
         print("we copy entry content to pasteboard")
-        //Q: why can't call printPasteBoard() in AppDelegate? A: you need reference to Appdelegate
-        //AppDelegate.printPasteBoard()
+        appDelegate.printPasteBoard()
     }
     
 }

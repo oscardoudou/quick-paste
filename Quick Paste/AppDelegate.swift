@@ -18,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var firstTime = true
     var firstParenthesisEntry = true
     var maxCharacterSize = 255
-    let preferTypes: [NSPasteboard.PasteboardType] = [NSPasteboard.PasteboardType.init("public.file-url"),NSPasteboard.PasteboardType.init("public.utf8-plain-text")]
+    let preferTypes: [NSPasteboard.PasteboardType] = [NSPasteboard.PasteboardType.init("public.file-url"),NSPasteboard.PasteboardType.init("public.utf8-plain-text"),NSPasteboard.PasteboardType.init("public.png")]
     var timer: Timer!
     var lastChangeCount: Int = 0
     let pasteboard = NSPasteboard.general
@@ -47,6 +47,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //the interval 0.05 0.1 doesn't help, system unlikey trigger it at precisely 0.05 0.1 second intervals, system reserve the right
         //not sure if using selector would help, so far 1 sec is somehow robust to record all the copy
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { (t) in
+            //print("\(self.lastChangeCount) vs \(self.pasteboard.changeCount)")
             if self.lastChangeCount != self.pasteboard.changeCount {
                 self.lastChangeCount = self.pasteboard.changeCount
                 //no sure when changeCount would be reset to 0 by system, better not use lastChangeCount as check
@@ -95,8 +96,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func onPasteboardChanged(_ notification: Notification){
         guard let pb = notification.object as? NSPasteboard else { return }
         guard let items = pb.pasteboardItems else { return }
-        guard let item = items.first?.string(forType: .string) else { return } // you should handle multiple types
-        var currentDateTime = Date()
+        guard let preferType = items.first?.availableType(from: preferTypes)! else {return}
+        let currentDateTime = Date()
         let dateFormatter = DateFormatter()
         dateFormatter.timeStyle = .medium
         let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
@@ -151,6 +152,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, path: path, data: data)
                 //addItemToMenu(item: newItem)
                 indexItem(item: newSearchableItem)
+            }
+            else if preferType.rawValue == "public.png"{
+                data = item.data(forType: NSPasteboard.PasteboardType.init("public.png")) ?? Data()
+                let date = Date()
+                let dateFormatter = DateFormatter()
+                dateFormatter.timeStyle = .medium
+                let timesstamp = "\(dateFormatter.string(from: date))"
+                title = "Screen Shot at \(timesstamp)"
+                dataController.createCopied(id: id, title: title, type: preferType.rawValue, data: data, timestamp: date)
             }
             else{
 //                TODO

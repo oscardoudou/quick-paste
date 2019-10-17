@@ -76,8 +76,8 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3B80A21121D1C2F0003C0156 /* Build configuration list for PBXNativeTarget "Quick Paste" */;
 			buildPhases = (
-				3B80A1FD21D1C2EF003C0156 /* Sources */,
 				3B80A1FE21D1C2EF003C0156 /* Frameworks */,
+				3B80A1FD21D1C2EF003C0156 /* Sources */,
 				3B80A1FF21D1C2EF003C0156 /* Resources */,
 			);
 			buildRules = (
