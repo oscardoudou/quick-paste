@@ -102,7 +102,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         dateFormatter.timeStyle = .medium
         let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
         //for now we only log copy event, could be searchable, before introducing duplicate will leave this as unsearchable
-        print("\(copyTimeStamp) | '\(item)'")
+        print("\(copyTimeStamp) | '\(preferType)'")
         //index copy event
         bindIt()
     }

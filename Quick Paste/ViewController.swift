@@ -19,6 +19,7 @@ class ViewController: NSViewController {
     var fetchPredicate : NSPredicate? {
         didSet {
             fetchedResultsController.fetchRequest.predicate = fetchPredicate
+            print("FetchResultsController.fecthRequest.predicate changed from \(oldValue) to \(fetchPredicate)")
         }
     }
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
@@ -111,6 +112,28 @@ class ViewController: NSViewController {
             //other modifier keys
             default:
                 break
+            }
+        }
+        if event.keyCode == 125{
+            print("detected arrow down")
+            //when focus on searchbar, arrow down would bring focus to tableview and highlight first row
+            if NSApplication.shared.windows[2].firstResponder?.isKind(of: NSTextView.self) == true{
+                if tableView.selectedRowIndexes.count > 0{
+                    tableView.deselectAll(tableView.selectedRowIndexes)
+                }
+                //move focus only if there is result present
+                if(copieds!.count>0){
+                    NSApplication.shared.windows[2].makeFirstResponder(tableView)
+                }
+            }
+        }
+        if event.keyCode == 126{
+            print("detected arrow up")
+            if tableView.selectedRow == 0{
+                NSApplication.shared.windows[2].makeFirstResponder(searchField)
+                //remove this line if you want text being selected
+                searchField.currentEditor()?.moveToEndOfLine(nil)
+                searchField.moveToEndOfDocument(nil)
             }
         }
     }
