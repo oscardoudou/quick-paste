@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B014F60235C057600838648 /* LocalEventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B014F5F235C057600838648 /* LocalEventMonitor.swift */; };
 		3B0F8CF821F68B0F001CF701 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B0F8CF721F68B0F001CF701 /* Assets.xcassets */; };
 		3B10BAD023490CF50029AED3 /* Quick Paste.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3B10BACE23490CF50029AED3 /* Quick Paste.xcdatamodeld */; };
 		3B10BAD223491C7F0029AED3 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B10BAD123491C7F0029AED3 /* DataController.swift */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		3B014F5F235C057600838648 /* LocalEventMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalEventMonitor.swift; sourceTree = "<group>"; };
 		3B0F8CF721F68B0F001CF701 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3B10BACF23490CF50029AED3 /* Quick Paste.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Quick Paste.xcdatamodel"; sourceTree = "<group>"; };
 		3B10BAD123491C7F0029AED3 /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 				3B80A20421D1C2EF003C0156 /* AppDelegate.swift */,
 				3B10BAD123491C7F0029AED3 /* DataController.swift */,
 				3B80A20621D1C2EF003C0156 /* ViewController.swift */,
+				3B014F5F235C057600838648 /* LocalEventMonitor.swift */,
 				3B80A20A21D1C2F0003C0156 /* Main.storyboard */,
 				3B80A20D21D1C2F0003C0156 /* Info.plist */,
 			);
@@ -145,6 +148,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3B10BAD023490CF50029AED3 /* Quick Paste.xcdatamodeld in Sources */,
+				3B014F60235C057600838648 /* LocalEventMonitor.swift in Sources */,
 				3B10BAD223491C7F0029AED3 /* DataController.swift in Sources */,
 				3B80A20721D1C2EF003C0156 /* ViewController.swift in Sources */,
 				3B80A20521D1C2EF003C0156 /* AppDelegate.swift in Sources */,

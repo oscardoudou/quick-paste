@@ -25,7 +25,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var dataController: DataController!
     let popover = NSPopover()
     let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
-    
+    var viewController: ViewController! = ViewController.freshController()
+    lazy var localEventMonitor : LocalEventMonitor  = LocalEventMonitor(mask: .keyDown){
+        event in
+        print(self.localEventMonitor)
+        self.viewController.keyDown(with: event!)
+        return event!
+    }
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
 //         buildMenu()
@@ -35,11 +41,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
           button.action = #selector(togglePopover)
         }
         //grab the view controller and pass a Persistent Container Reference to a View Controller
-        if let viewController =  ViewController.freshController() as? ViewController{
+//        if let viewController =  ViewController.freshController() as? ViewController{
             viewController.container = dataController.persistentContainer
-            //viewController.dataController = self.dataController
+            viewController.dataController = self.dataController
             popover.contentViewController =  viewController
-        }
+//        }
         //url scheme
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
         //add pasteboard observer/listener to notification center, center will post onPasteboardChanged when be notified
@@ -76,10 +82,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       if let button = statusItem.button {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
       }
+        localEventMonitor.start()
     }
 
     func closePopover(sender: Any?) {
       popover.performClose(sender)
+        localEventMonitor.stop()
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {

@@ -22,7 +22,7 @@ class ViewController: NSViewController {
             print("FetchResultsController.fecthRequest.predicate changed from \(oldValue) to \(fetchPredicate)")
         }
     }
-    let appDelegate = NSApplication.shared.delegate as! AppDelegate
+    var appDelegate : AppDelegate!
     var dataController : DataController!
     private lazy var fetchedResultsController: NSFetchedResultsController<Copied> = {
         let context = container.viewContext
@@ -40,6 +40,7 @@ class ViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        appDelegate = NSApplication.shared.delegate as! AppDelegate
         guard container != nil else{
             fatalError("This view need a persistent container")
         }
@@ -55,10 +56,7 @@ class ViewController: NSViewController {
         searchField.delegate = self
         tableView.action = #selector(copyOnSelect)
         print("AXIsProcessTrusted(): \(AXIsProcessTrusted())")
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown){
-            self.keyDown(with: $0)
-            return $0
-        }
+       
     }
 
     override var representedObject: Any? {
