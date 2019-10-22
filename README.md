@@ -8,6 +8,7 @@ Initially it is just a simple tool to facilate my job application filling proces
 3. filter history by name
 4. record screenshot copy
 5. shortcut paste top 6 record
+6. delete single record
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
@@ -16,7 +17,7 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [x] binded item searchable
 - [x] file icon 
 - [ ] duplicate check
-- [ ] click outside window hide 
+- [x] click outside window hide 
 - [x] onPasteboardChange() catch all the copy activity
 - [x] table should update automatically after persistent container update
 - [x] support in-app naive search 
@@ -24,11 +25,13 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [x] retrieve object based on tableview.index, especially when after apply search(filtered history row index has nothing to do with id, temp copied array)
 ## Project Structure
 - [x] split file if necessary
+- [ ] refactor AppDelegate and ViewController
+- [ ] figure out a proper way let app init until finish launching/view loaded
 - [x] use core data managed object and corresponding class(currently no subclass)
 - [x] show history in popover and table instead of status bar menu
 ## Feature
 - [ ] spotlight on tap redirect(work for some file like pdf, zip and doc, need further test but definitely need implement continued activity function)
-- [ ] remove copied activity record from history
+- [x] remove copied activity record from history
 - [x] record screenshot stored to clipboard.(Default is cmd+shift+3+ctrl and cmd+shift+4+ctrl) 
 - [x] local shortcut paste using cmd+1~6
 ## Issue
@@ -39,6 +42,7 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [x] avoid save most recent copied since last close, which end up duplicate search history. (use property firstTime check)
 - [x] copy it should not add new record, avoid this type of changeCount being trigger (set lastChangeCount same to changeCount)
 - [x] right after insert new history record click the history, not the same history record when paste it.(after each update, the tableview should be consistent with copieds)
+- [ ] not memorizing the row after record deletion
 ## Dev history
 1. The initial purpose resume parsing, menu would look good only in this [resume](https://www.dropbox.com/s/8r6wm7d8t45pmsc/2019_Resume_Yichi_Zhang.pdf?dl=0) format. 
 2. Key equavilant support from 1 to 9
