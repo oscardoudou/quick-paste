@@ -26,11 +26,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let popover = NSPopover()
     let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
     var viewController: ViewController! = ViewController.freshController()
-    lazy var localEventMonitor : LocalEventMonitor  = LocalEventMonitor(mask: .keyDown){
+    lazy var localEventMonitor : LocalEventMonitor  = LocalEventMonitor(mask: .keyDown){[weak self]
         event in
-        print(self.localEventMonitor)
-        self.viewController.keyDown(with: event!)
+        if let strongSelf = self {
+            print(strongSelf.localEventMonitor)
+            strongSelf.viewController.keyDown(with: event!)
+        }
         return event!
+    }
+    lazy var globalEventMonitor: GlobalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]){ [weak self]
+        event in
+        if let strongSelf = self, strongSelf.popover.isShown {
+            print(strongSelf.globalEventMonitor)
+            strongSelf.closePopover(sender: event)
+        }
     }
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -83,11 +92,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
       }
         localEventMonitor.start()
+        globalEventMonitor.start()
     }
 
     func closePopover(sender: Any?) {
       popover.performClose(sender)
         localEventMonitor.stop()
+        globalEventMonitor.stop()
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {

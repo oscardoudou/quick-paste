@@ -14,6 +14,7 @@
 		3B80A20521D1C2EF003C0156 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B80A20421D1C2EF003C0156 /* AppDelegate.swift */; };
 		3B80A20721D1C2EF003C0156 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B80A20621D1C2EF003C0156 /* ViewController.swift */; };
 		3B80A20C21D1C2F0003C0156 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 3B80A20A21D1C2F0003C0156 /* Main.storyboard */; };
+		3BD1CE48235EB5F700F4E18A /* GlobalEventMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BD1CE47235EB5F700F4E18A /* GlobalEventMonitor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 		3B80A20B21D1C2F0003C0156 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		3B80A20D21D1C2F0003C0156 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		3BC3C7E82340522900FE92E8 /* Quick Paste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Quick Paste.entitlements"; sourceTree = "<group>"; };
+		3BD1CE47235EB5F700F4E18A /* GlobalEventMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalEventMonitor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 				3B80A20421D1C2EF003C0156 /* AppDelegate.swift */,
 				3B10BAD123491C7F0029AED3 /* DataController.swift */,
 				3B80A20621D1C2EF003C0156 /* ViewController.swift */,
+				3BD1CE47235EB5F700F4E18A /* GlobalEventMonitor.swift */,
 				3B014F5F235C057600838648 /* LocalEventMonitor.swift */,
 				3B80A20A21D1C2F0003C0156 /* Main.storyboard */,
 				3B80A20D21D1C2F0003C0156 /* Info.plist */,
@@ -149,6 +152,7 @@
 			files = (
 				3B10BAD023490CF50029AED3 /* Quick Paste.xcdatamodeld in Sources */,
 				3B014F60235C057600838648 /* LocalEventMonitor.swift in Sources */,
+				3BD1CE48235EB5F700F4E18A /* GlobalEventMonitor.swift in Sources */,
 				3B10BAD223491C7F0029AED3 /* DataController.swift in Sources */,
 				3B80A20721D1C2EF003C0156 /* ViewController.swift in Sources */,
 				3B80A20521D1C2EF003C0156 /* AppDelegate.swift in Sources */,
