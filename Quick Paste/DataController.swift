@@ -79,6 +79,14 @@ public class DataController: NSObject{
             print(" ❌ Failed to create Copied \(error.localizedDescription) ")
         }
     }
+    public func removeCopied(item: Copied){
+        do{
+            context.delete(item)
+            print ("✅  Copied \(item.id) removed successfully")
+        }catch let error{
+            print(" ❌ Failed to remove Copied \(error.localizedDescription) ")
+        }
+    }
     
     public func fetch(id: Int)->Copied{
 //        construct fetchRequest
