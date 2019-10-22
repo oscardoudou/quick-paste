@@ -23,6 +23,7 @@ class ViewController: NSViewController {
         }
     }
     let appDelegate = NSApplication.shared.delegate as! AppDelegate
+    var dataController : DataController!
     private lazy var fetchedResultsController: NSFetchedResultsController<Copied> = {
         let context = container.viewContext
         let fetchRequest = NSFetchRequest<Copied>(entityName: "Copied")
@@ -100,6 +101,12 @@ class ViewController: NSViewController {
         print("we copy entry content to pasteboard")
         appDelegate.printPasteBoard()
     }
+    //base delete
+    public func deleteIt(){
+        print("---------deleteIt------------")
+        let item: Copied = copieds![tableView.selectedRow]
+        dataController.removeCopied(item: item)
+    }
     //monitor for keydown event
     override func keyDown(with event: NSEvent) {
         //avoid crash caused by cmd+backspace
@@ -114,10 +121,32 @@ class ViewController: NSViewController {
                 break
             }
         }
+        if event.keyCode == 51{
+            print("detected deletetable. View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
+            if NSApplication.shared.windows[2].firstResponder?.isKind(of: NSTableView.self) == true{
+                let changeFocusToSearchBar = copieds!.count == 1 ? true : false
+                //currently only support delete on record
+                if tableView.selectedRow >= 0 {
+                    deleteIt()
+                    if changeFocusToSearchBar == true{
+                        NSApplication.shared.windows[2].makeFirstResponder(searchField)
+                        searchField.currentEditor()?.moveToEndOfLine(nil)
+                        searchField.moveToEndOfDocument(nil)
+                    }
+                    else{
+                        NSApplication.shared.windows[2].makeFirstResponder(tableView)
+                    }
+                }
+            }
+        }
         if event.keyCode == 125{
             print("detected arrow down")
+            print("tableView.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
             //when focus on searchbar, arrow down would bring focus to tableview and highlight first row
             if NSApplication.shared.windows[2].firstResponder?.isKind(of: NSTextView.self) == true{
+                //tackle click back to search bar, remaining rows selected
+                print("tableView.selectedRowIndexes.count\(tableView.selectedRowIndexes.count)")
+                //only right after launch directly go to table will not go inside this condition
                 if tableView.selectedRowIndexes.count > 0{
                     tableView.deselectAll(tableView.selectedRowIndexes)
                 }
@@ -129,11 +158,15 @@ class ViewController: NSViewController {
         }
         if event.keyCode == 126{
             print("detected arrow up")
-            if tableView.selectedRow == 0{
-                NSApplication.shared.windows[2].makeFirstResponder(searchField)
-                //remove this line if you want text being selected
-                searchField.currentEditor()?.moveToEndOfLine(nil)
-                searchField.moveToEndOfDocument(nil)
+            print("tableView.selectedRow:\(tableView.selectedRow), event.timestamp: \(event.timestamp)")
+            if NSApplication.shared.windows[2].firstResponder?.isKind(of: NSTableView.self) == true{
+                print("copieds!.count\(copieds!.count)")
+                if tableView.selectedRow == 0{
+                    NSApplication.shared.windows[2].makeFirstResponder(searchField)
+                    //remove this line if you want text being selected
+                    searchField.currentEditor()?.moveToEndOfLine(nil)
+                    searchField.moveToEndOfDocument(nil)
+                }
             }
         }
     }
