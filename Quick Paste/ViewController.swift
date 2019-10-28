@@ -71,6 +71,14 @@ class ViewController: NSViewController {
             let item: Copied = copieds![tableView.selectedRow] else {
             return
         }
+        print("rowView\(tableView.rowView(atRow: tableView.selectedRow, makeIfNecessary: false))")
+        let cellView = tableView.view(atColumn: 0, row: tableView.selectedRow, makeIfNecessary: false)
+        print ("cellView\(cellView?.subviews[0])")
+        let imageView = cellView?.subviews[0] as! NSImageView
+        print("imageView hide status: \(imageView.isHidden)")
+        let textField = cellView?.subviews[1] as! NSTextField
+        print ("stringValue: \(textField.stringValue)")
+        print("thumbnail == nil ? : \(item.thumbnail == nil)")
         copyIt(item: item)
     }
     //table view copy on shortcut
@@ -303,8 +311,7 @@ extension ViewController: NSTableViewDelegate {
             break
         }
         cell.textField?.stringValue = text != nil ? text! : "default"
-        //we have a surprising bug: if text copied, even default stackoverflow image won't be set.The image would be blank, but next time you open if will show up
-        cell.imageView?.image = image ?? nil
+        cell.imageView?.image = image
     }
 }
 

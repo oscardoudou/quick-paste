@@ -61,7 +61,7 @@ public class DataController: NSObject{
         }
     }
     
-    public func createCopied(id: Int, title: String, path: String = "", type: String, data: Data = Data(), timestamp: Date){
+    public func createCopied(id: Int, title: String, path: String = "", type: String, data: Data? = nil, timestamp: Date){
         let copied = NSEntityDescription.insertNewObject(forEntityName: "Copied", into: context) as! Copied
         copied.id = Int64(id)
         copied.name = title
@@ -70,6 +70,7 @@ public class DataController: NSObject{
         copied.timestamp = timestamp
         copied.type = type
         print ("copied object \(copied.id) is set")
+        //print("data == nil ? \(data == nil)")
         do{
             try context.save()
             print ("✅  Copied saved successfully")
