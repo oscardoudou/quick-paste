@@ -1,5 +1,5 @@
 .DS_Store
 Quick\ Paste.xcodeproj/project.xcworkspace/xcuserdata/zhangyichi.xcuserdatad/UserInterfaceState.xcuserstate
-Quick\ Paste.xcodeproj/project.xcworkspace/xcuserdata/
-xcuserdata/
-Quick Paste.xcodeproj/xcshareddata
+Quick\ Paste.xcodeproj/project.xcworkspace/xcuserdata/*
+Quick\ Paste.xcodeproj/xcshareddata/*
+!Quick\ Paste.xcodeproj/xcshareddata/xcschemes
