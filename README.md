@@ -1,7 +1,7 @@
 # Quick Paste
-#### Manage you frequently used item for easy access. 
+#### Manage you frequently copied items for easy access. 
 ## Inspiration
-Initially it is just a simple tool to facilate my job application filling process. When I do job hunting, my mac was slow. Opening too many app(Adobe Reader, MS Word and too much safari chrome tab) significantly slow my mac. Also copy paste repeatedly is tedious. So I came to the idea to store frequently copied item in menu bar.  
+Initially it is just a simple tool to facilate my job application filling process. When I did job hunting, my mac was slow. Opening too many app(Adobe Reader, MS Word and too much safari chrome tab) significantly slow my mac. Copy paste repeatedly is tedious. So I came to the idea to store frequently copied items in menu bar for quick access.  
 ## Current
 1. copy history
 2. url scheme support
@@ -9,6 +9,7 @@ Initially it is just a simple tool to facilate my job application filling proces
 4. record screenshot copy
 5. shortcut paste top 6 record
 6. delete single record
+7. show either image or text
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
@@ -23,6 +24,8 @@ Initially it is just a simple tool to facilate my job application filling proces
 - [x] support in-app naive search 
 - [x] entry on select could be copied(reuse copyIt)
 - [x] retrieve object based on tableview.index, especially when after apply search(filtered history row index has nothing to do with id, temp copied array)
+- [ ] align image in middle
+- [ ] resize menu to show at least six items
 ## Project Structure
 - [x] split file if necessary
 - [ ] refactor AppDelegate and ViewController
@@ -61,3 +64,5 @@ Initially it is just a simple tool to facilate my job application filling proces
 14. On click copy to pasteboard
 15. Record screenshots directly into clipboard
 16. Support local shortcut paste top 6 shown item
+17. Show either image or text, not both.
+18. Dynamic height of text
