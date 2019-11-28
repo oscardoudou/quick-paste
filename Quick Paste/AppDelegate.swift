@@ -41,6 +41,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             strongSelf.closePopover(sender: event)
         }
     }
+    lazy var globalBringUpMonitor: GlobalEventMonitor = GlobalEventMonitor(mask: .keyDown){ [weak self]
+        event in
+        if let strongSelf = self {
+            print(strongSelf.globalBringUpMonitor)
+            strongSelf.viewController.keyDown(with: event!)
+        }
+    }
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
 //         buildMenu()
@@ -77,6 +84,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let defaults = UserDefaults.standard
         let defaultValue = ["maxId" : ""]
         defaults.register(defaults: defaultValue)
+        globalBringUpMonitor.start()
     }
 
     @objc func togglePopover(_ sender: Any?) {

@@ -197,6 +197,18 @@ class ViewController: NSViewController {
                 }
             }
         }
+        //global shortcut
+        //ctrl+shift+q popup the quick paste window
+        if event.keyCode == 12{
+            print("q detected")
+            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask){
+            case[.control, .shift]:
+                print("control+shift");
+                appDelegate.togglePopover(event.keyCode)
+            default:
+                break
+            }
+        }
     }
 }
 
@@ -217,6 +229,7 @@ extension ViewController {
 
 extension ViewController{
     @IBAction func Quit(_ sender: Any) {
+        appDelegate.globalBringUpMonitor.stop()
         NSApplication.shared.terminate(self)
     }
 }
