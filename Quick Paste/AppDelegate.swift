@@ -123,15 +123,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func onPasteboardChanged(_ notification: Notification){
         guard let pb = notification.object as? NSPasteboard else { return }
         guard let items = pb.pasteboardItems else { return }
-        guard let preferType = items.first?.availableType(from: preferTypes)! else {return}
-        let currentDateTime = Date()
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeStyle = .medium
-        let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
-        //for now we only log copy event, could be searchable, before introducing duplicate will leave this as unsearchable
-        print("\(copyTimeStamp) | '\(preferType)'")
-        //index copy event
-        bindIt()
+        //only copy screenshot text and file, fix unsupport copy type unwrap nil crash
+        if let preferType = items.first?.availableType(from: preferTypes){
+            let currentDateTime = Date()
+                   let dateFormatter = DateFormatter()
+                   dateFormatter.timeStyle = .medium
+                   let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
+                   //for now we only log copy event, could be searchable, before introducing duplicate will leave this as unsearchable
+                   print("\(copyTimeStamp) | '\(preferType)'")
+                   //index copy event
+                   bindIt()
+        }else{
+            return
+        }
     }
     
     
