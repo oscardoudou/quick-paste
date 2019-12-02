@@ -37,7 +37,11 @@ class ViewController: NSViewController {
         controller.delegate = self
         return controller
     }()
-    
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        //after using CustomView searchfield is not auto focused anymore
+        searchField.window?.makeFirstResponder(searchField)
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         appDelegate = NSApplication.shared.delegate as! AppDelegate
@@ -91,6 +95,15 @@ class ViewController: NSViewController {
         }
         copyIt(item: item)
     }
+    private func copyOnReturn(currentRow: Int){
+        print("---------CopyOnReturn---------------")
+        print("available copied count in current view: \(copieds!.count)")
+        guard currentRow <= copieds!.count,
+            let item: Copied = copieds![currentRow] else {
+            return
+        }
+        copyIt(item: item)
+    }
     //base copy
     private func copyIt(item: Copied){
         //important step
@@ -108,7 +121,7 @@ class ViewController: NSViewController {
         appDelegate.printPasteBoard()
     }
     //base delete
-    public func deleteIt(){
+    private func deleteIt(){
         print("---------deleteIt------------")
         let item: Copied = copieds![tableView.selectedRow]
         dataController.removeCopied(item: item)
@@ -137,6 +150,7 @@ class ViewController: NSViewController {
                 }
             }
             if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true{
+                //focus change to searchfield only if no entry left
                 let changeFocusToSearchBar = copieds!.count == 1 ? true : false
                 //currently only support delete on record
                 if tableView.selectedRow >= 0 {
@@ -197,6 +211,20 @@ class ViewController: NSViewController {
                 }
             }
         }
+        if event.keyCode == 36{
+            print("return key detected，View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
+            var popOverWindow: NSWindow?
+            NSApplication.shared.windows.forEach{window in
+                print(window.className)
+                if(window.className.contains("Popover")){
+                    popOverWindow = window; print(popOverWindow)
+                }
+            }
+            if popOverWindow?.firstResponder?.isKind(of: NSTableView.self) == true{
+                print("current selected row:\(tableView.selectedRow)")
+                copyOnReturn(currentRow: tableView.selectedRow)
+            }
+        }
         //global shortcut
         //ctrl+shift+q popup the quick paste window
         if event.keyCode == 12{
@@ -204,7 +232,10 @@ class ViewController: NSViewController {
             switch event.modifierFlags.intersection(.deviceIndependentFlagsMask){
             case[.control, .shift]:
                 print("control+shift");
-                appDelegate.togglePopover(event.keyCode)
+                if(appDelegate == nil){
+                    appDelegate = NSApplication.shared.delegate as! AppDelegate
+                }
+                appDelegate.togglePopover(appDelegate.statusItem.button)
             default:
                 break
             }
