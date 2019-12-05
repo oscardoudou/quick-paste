@@ -85,6 +85,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let defaultValue = ["maxId" : ""]
         defaults.register(defaults: defaultValue)
         globalBringUpMonitor.start()
+        togglePopover(statusItem.button)
     }
 
     @objc func togglePopover(_ sender: Any?) {
@@ -149,7 +150,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         if(firstTime){
-//            menu.insertItem(NSMenuItem.separator(), at: 1)
             firstTime = false
         }
         var path: String
@@ -167,10 +167,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 //NSPasteboard.general.clearContents()
                 print("plaintext is: \(title)")
                 dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date())
-                //let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue)
-                let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, data: nil)
-                //addItemToMenu(item: newItem)
-                indexItem(item: newSearchableItem)
             }
             else if preferType.rawValue == "public.file-url"{
                 path = item.string(forType: preferType) ?? "NoPath"
@@ -179,10 +175,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 //NSPasteboard.general.clearContents()
                 print("path is: \(path)")
                 dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date())
-                //let newItem = createMenuItem(id: id, title: title, type: preferType.rawValue, data: data)
-                let newSearchableItem = createSearhableItem(id: id, title: title, type: preferType.rawValue, path: path, data: data)
-                //addItemToMenu(item: newItem)
-                indexItem(item: newSearchableItem)
             }
             else if preferType.rawValue == "public.png"{
                 data = item.data(forType: NSPasteboard.PasteboardType.init("public.png")) ?? Data()
@@ -199,81 +191,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
-    //deprecated createMenuItem
-    @objc func createMenuItem(id: Int, title: String, type: String, data: Data = Data())->NSMenuItem{
-        var newItem : NSMenuItem? = nil
-        print ("\(title), \(type)")
-        if type == "public.file-url" {
-            newItem = NSMenuItem(title: String(title), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(id%9)")
-            let rawImage = NSImage(data: data)
-            newItem?.image = rawImage?.resizedImageTo(sourceImage: rawImage!, newSize: NSSize.init(width: 20, height: 20))
-            
-        }
-        if type == "public.utf8-plain-text"{
-            let afterParse = parseResumeFormat(title: title)
-            newItem = NSMenuItem(title: afterParse, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(id%9)")
-            if(afterParse == "stackoverflow"){
-                newItem?.image = NSImage(named: "stackoverflow")
-                newItem?.title = ""
-            }
-            if(afterParse == "linkedin"){
-                newItem?.image = NSImage(named: "linkedin")
-                newItem?.title = ""
-            }
-            if(afterParse == "github"){
-                newItem?.image = NSImage(named: "github")
-                newItem?.title = ""
-            }
-        }
-        newItem!.representedObject = id as Int
-        return newItem!
-    }
-    //depreacated addItemToMenu
-    @objc func addItemToMenu(item: NSMenuItem){
-        menu.insertItem(item, at: index + 1)
-        index+=1
-    }
     
-    
-    //spotlight searchable
-    func createSearhableItem(id: Int, title: String, type: String, path: String = "", data: Data?)->CSSearchableItem{
-        let searchableAttributeSet = CSSearchableItemAttributeSet.init(itemContentType: kUTTypeData as String)
-        searchableAttributeSet.title = title
-        searchableAttributeSet.contentDescription = title
-        searchableAttributeSet.kind = type
-        //currently contentURL gives thumbnail, thumbnailURL do nothing
-        searchableAttributeSet.contentURL = URL.init(fileURLWithPath: path)
-        searchableAttributeSet.path = URL.init(fileURLWithPath: path).path
-        let searchableItem = CSSearchableItem.init(uniqueIdentifier: String(id), domainIdentifier: "", attributeSet: searchableAttributeSet)
-        return searchableItem
-    }
-    
-    func indexItem(item: CSSearchableItem){
-        CSSearchableIndex.default().indexSearchableItems([item]){error in
-            if let error = error {
-                print("Indexing error: \(error.localizedDescription)")
-            } else {
-                print("Search item successfully indexed!")
-            }
-        }
-    }
-    
-    
-    //status bar copy
-    @objc func copyIt(sender: NSMenuItem){
-        print("---------copyIt--------------")
-        //important step
-        NSPasteboard.general.clearContents()
-        let item = dataController.fetch(id: sender.representedObject as! Int)
-        print ("Copied \(item.id): \(item.type)")
-        NSPasteboard.general.setString(item.path!, forType: NSPasteboard.PasteboardType.init(item.type!))
-//        if item.type! != "public.utf8-plain-text"{
-        NSPasteboard.general.setString(item.name!, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
-//        }
-        print(sender.representedObject as! Int)
-        print("we copy entry content to pasteboard")
-        printPasteBoard()
-    }
     
     @objc func printPasteBoard(){
         //it is possible no copy at all, so it need to be optional
@@ -290,7 +208,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     //url scheme event handler
     @objc func handleAppleEvent(event: NSAppleEventDescriptor, replyEvent: NSAppleEventDescriptor) {
-//        menu.addItem(NSMenuItem.separator())
         if let text = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue?.removingPercentEncoding {
             if text.contains("readlog://") {
                 if let indexOfSemiColon = text.firstIndex(of: ":") as String.Index?{
@@ -307,85 +224,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     //NSPasteboard.general.clearContents()
                     print("url scheme message is: \(paramFromCommandLine)")
                     dataController.createCopied(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text", timestamp:Date())
-                    let newItem = createMenuItem(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text")
-                    let newSearchableItem = createSearhableItem(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text", data: nil)
-                    //addItemToMenu(item: newItem)
-                    indexItem(item: newSearchableItem)
                 }
             }
         }
     }
     
-    //need refactor
-    @objc func parseResumeFormat(title: String)->String{
-        var res = ""
-        if let indexEndOfTitle = title.firstIndex(of: "(") as String.Index?{
-            //get string before "("
-            if(firstParenthesisEntry){
-                maxCharacterSize = indexEndOfTitle.encodedOffset < maxCharacterSize ? indexEndOfTitle.encodedOffset : maxCharacterSize
-                firstParenthesisEntry = false
-            }
-            else{
-                //utilize the space as much as possible as long as it doesn't exceed ( entry's max size
-                maxCharacterSize = indexEndOfTitle.encodedOffset > maxCharacterSize ? indexEndOfTitle.encodedOffset : maxCharacterSize
-            }
-            //            print("\(index)" + ", " + "\(maxCharacterSize)")
-//            newItem = NSMenuItem(title: String(title[..<indexEndOfTitle]), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-            res = String(title[..<indexEndOfTitle])
-        }else{
-            //no "(" present in first line, link or email
-            if let indexOfAt = title.firstIndex(of: "@") as String.Index?{
-                //email
-                let start = title.index(indexOfAt, offsetBy: 1)
-                let end = title.lastIndex(of: ".")!
-                let institue = String(title[start..<end])
-//                newItem = NSMenuItem(title: institue.uppercased(), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-                res = institue.uppercased()
-            }else{
-                //only . present
-                if let end = title.lastIndex(of: ".") as String.Index?{
-                    //default start form startIndex
-                    var start = title.startIndex
-                    //point to last . since end always be the last .
-                    //                let end = title.lastIndex(of: ".")!
-                    //point to first .
-                    let indexPossibleStartHost = title.firstIndex(of: ".")!
-                    //if has http or https prefix, start from 3 offset from colon
-                    if title.hasPrefix("http://")||title.hasPrefix("https://"){
-                        let indexEndOfProtocol = title.firstIndex(of: ":")!
-                        //point to first char after :// for link like github and leetcode
-                        start = title.index(indexEndOfProtocol, offsetBy: 3)
-                    }
-                    if(indexPossibleStartHost.encodedOffset != end.encodedOffset){
-                        //piont to first . for link like linkedin
-                        start = title.index(indexPossibleStartHost, offsetBy: 1)
-                    }
-                    let host = String(title[start..<end])
-                    print (host)
-//                    newItem = NSMenuItem(title: host, action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-                    res = host
-                }else{
-                    //no . use space to separate no space simply return first element in splitted array
-                    let words = title.split(separator: " ")
-                    var preview = words[0]
-                    print(preview.count)
-                    for word in words{
-                        if(word == words[0]){continue}
-                        //only preview whole word never cut in the middle
-                        if(preview.count + word.count < maxCharacterSize){
-                            preview += word + " "
-                            //                            print(preview.count)
-                        }else{
-                            break
-                        }
-                    }
-//                    newItem = NSMenuItem(title: String(preview), action: #selector(AppDelegate.copyIt), keyEquivalent: "\(index)")
-                    res = String(preview)
-                }
-            }
-        }
-        return res
-    }
+
     //deprecated system menu
     func buildMenu(){
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
