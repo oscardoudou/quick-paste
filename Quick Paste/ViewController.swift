@@ -13,6 +13,7 @@ class ViewController: NSViewController {
 
     @IBOutlet weak var searchField: NSSearchField!
     @IBOutlet weak var tableView: NSTableView!
+    var consolidator : NSFRCChangeConsolidator?
     var container: NSPersistentContainer!
     //store managedObject array of current view
     var copieds : [Copied]?
@@ -263,6 +264,11 @@ extension ViewController{
         appDelegate.globalBringUpMonitor.stop()
         NSApplication.shared.terminate(self)
     }
+    @IBAction func clear(_ sender: NSButton) {
+        print("trigger clear button")
+        dataController.deleteAll()
+//        tableView.reloadData()
+    }
 }
 extension ViewController: NSSearchFieldDelegate{
     func controlTextDidChange(_ notification: Notification) {
@@ -297,22 +303,44 @@ extension ViewController: NSSearchFieldDelegate{
 //this extension is important, but don't know the difference from class ViewController: NSViewController, NSFetchedResultsControllerDelegate
 extension ViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        print("tableViewBeginUpdates")
+        consolidator = NSFRCChangeConsolidator()
         tableView.beginUpdates()
     }
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>){
+        if let rowDeletes = consolidator?.sortedRowDeletes(){
+            if(rowDeletes.count > 0){
+                for indexPath in rowDeletes{
+                    tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
+                }
+            }
+        }
+        if let rowInserts = consolidator?.sortedRowInserts(){
+            if(rowInserts.count > 0){
+                for indexPath in rowInserts{
+                    tableView.insertRows(at: [indexPath.item], withAnimation: .effectFade)
+                }
+            }
+        }
         tableView.endUpdates()
+        //deallocate consolidator
+        consolidator = nil
+        print("tableViewEndUpdates")
     }
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,didChange anObject: Any, at indexPath: IndexPath?,for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?){
+        consolidator?.ingestItemChange(ofType: type, oldIndexPath: indexPath, newIndexPath: newIndexPath)
+        print("Change type \(type) for indexPath \(String(describing: indexPath)), newIndexPath \(String(describing: newIndexPath)). Changed object: \(anObject). FRC by this moment has \(String(describing: self.fetchedResultsController.fetchedObjects?.count)) objects, tableView has \(self.tableView.numberOfRows) rows")
         switch type {
         case .insert:
             if let newIndexPath = newIndexPath {
-                tableView.insertRows(at: [newIndexPath.item], withAnimation: .effectFade)
+//                tableView.insertRows(at: [newIndexPath.item], withAnimation: .effectFade)
             }
         case .delete:
             if let indexPath = indexPath{
-                tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
+//                tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
             }
         case .update:
+            //post about sequence on 12.4 log says we shouldn't care about oldindexpath
             if let indexPath = indexPath{
                 let row = indexPath.item
                 for column in 0..<tableView.numberOfColumns{
