@@ -13,6 +13,7 @@ class ViewController: NSViewController {
 
     @IBOutlet weak var searchField: NSSearchField!
     @IBOutlet weak var tableView: NSTableView!
+    var consolidator : NSFRCChangeConsolidator?
     var container: NSPersistentContainer!
     //store managedObject array of current view
     var copieds : [Copied]?
@@ -37,7 +38,11 @@ class ViewController: NSViewController {
         controller.delegate = self
         return controller
     }()
-    
+    override func viewDidAppear() {
+        super.viewDidAppear()
+        //after using CustomView searchfield is not auto focused anymore
+        searchField.window?.makeFirstResponder(searchField)
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         appDelegate = NSApplication.shared.delegate as! AppDelegate
@@ -91,6 +96,15 @@ class ViewController: NSViewController {
         }
         copyIt(item: item)
     }
+    private func copyOnReturn(currentRow: Int){
+        print("---------CopyOnReturn---------------")
+        print("available copied count in current view: \(copieds!.count)")
+        guard currentRow <= copieds!.count,
+            let item: Copied = copieds![currentRow] else {
+            return
+        }
+        copyIt(item: item)
+    }
     //base copy
     private func copyIt(item: Copied){
         //important step
@@ -101,14 +115,17 @@ class ViewController: NSViewController {
         if(item.type == "public.png"){
             NSPasteboard.general.setData(item.thumbnail!, forType: NSPasteboard.PasteboardType.init("public.png"))
         }else{
-        NSPasteboard.general.setString(item.path!, forType: NSPasteboard.PasteboardType.init(item.type!))
-        NSPasteboard.general.setString(item.name!, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+            //data error may lead to unwrap failure, though now it seems not possible, so using if let to safely unwrap
+            if let path = item.path, let type = item.type, let name = item.name {
+                NSPasteboard.general.setString(path, forType: NSPasteboard.PasteboardType.init(type))
+                NSPasteboard.general.setString(name, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+            }
         }
         print("we copy entry content to pasteboard")
         appDelegate.printPasteBoard()
     }
     //base delete
-    public func deleteIt(){
+    private func deleteIt(){
         print("---------deleteIt------------")
         let item: Copied = copieds![tableView.selectedRow]
         dataController.removeCopied(item: item)
@@ -131,12 +148,14 @@ class ViewController: NSViewController {
             print("detected deletetable. View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
             var popOverWindow: NSWindow?
             NSApplication.shared.windows.forEach{window in
-                print(window.className)
+//                print(window.className)
                 if(window.className.contains("Popover")){
-                    popOverWindow = window; print(popOverWindow)
+                    popOverWindow = window
+//                    print(popOverWindow)
                 }
             }
-            if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true{
+            if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true && popOverWindow!.isKeyWindow {
+                //focus change to searchfield only if no entry left
                 let changeFocusToSearchBar = copieds!.count == 1 ? true : false
                 //currently only support delete on record
                 if tableView.selectedRow >= 0 {
@@ -197,6 +216,35 @@ class ViewController: NSViewController {
                 }
             }
         }
+        if event.keyCode == 36{
+            print("return key detected，View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
+            var popOverWindow: NSWindow?
+            NSApplication.shared.windows.forEach{window in
+                print(window.className)
+                if(window.className.contains("Popover")){
+                    popOverWindow = window; print(popOverWindow)
+                }
+            }
+            if popOverWindow?.firstResponder?.isKind(of: NSTableView.self) == true{
+                print("current selected row:\(tableView.selectedRow)")
+                copyOnReturn(currentRow: tableView.selectedRow)
+            }
+        }
+        //global shortcut
+        //ctrl+shift+q popup the quick paste window
+        if event.keyCode == 12{
+            print("q detected")
+            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask){
+            case[.control, .shift]:
+                print("control+shift");
+                if(appDelegate == nil){
+                    appDelegate = NSApplication.shared.delegate as! AppDelegate
+                }
+                appDelegate.togglePopover(appDelegate.statusItem.button)
+            default:
+                break
+            }
+        }
     }
 }
 
@@ -217,7 +265,13 @@ extension ViewController {
 
 extension ViewController{
     @IBAction func Quit(_ sender: Any) {
+        appDelegate.globalBringUpMonitor.stop()
         NSApplication.shared.terminate(self)
+    }
+    @IBAction func clear(_ sender: NSButton) {
+        print("trigger clear button")
+        dataController.deleteAll()
+//        tableView.reloadData()
     }
 }
 extension ViewController: NSSearchFieldDelegate{
@@ -253,22 +307,44 @@ extension ViewController: NSSearchFieldDelegate{
 //this extension is important, but don't know the difference from class ViewController: NSViewController, NSFetchedResultsControllerDelegate
 extension ViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        print("tableViewBeginUpdates")
+        consolidator = NSFRCChangeConsolidator()
         tableView.beginUpdates()
     }
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>){
+        if let rowDeletes = consolidator?.sortedRowDeletes(){
+            if(rowDeletes.count > 0){
+                for indexPath in rowDeletes{
+                    tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
+                }
+            }
+        }
+        if let rowInserts = consolidator?.sortedRowInserts(){
+            if(rowInserts.count > 0){
+                for indexPath in rowInserts{
+                    tableView.insertRows(at: [indexPath.item], withAnimation: .effectFade)
+                }
+            }
+        }
         tableView.endUpdates()
+        //deallocate consolidator
+        consolidator = nil
+        print("tableViewEndUpdates")
     }
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,didChange anObject: Any, at indexPath: IndexPath?,for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?){
+        consolidator?.ingestItemChange(ofType: type, oldIndexPath: indexPath, newIndexPath: newIndexPath)
+        print("Change type \(type) for indexPath \(String(describing: indexPath)), newIndexPath \(String(describing: newIndexPath)). Changed object: \(anObject). FRC by this moment has \(String(describing: self.fetchedResultsController.fetchedObjects?.count)) objects, tableView has \(self.tableView.numberOfRows) rows")
         switch type {
         case .insert:
             if let newIndexPath = newIndexPath {
-                tableView.insertRows(at: [newIndexPath.item], withAnimation: .effectFade)
+//                tableView.insertRows(at: [newIndexPath.item], withAnimation: .effectFade)
             }
         case .delete:
             if let indexPath = indexPath{
-                tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
+//                tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
             }
         case .update:
+            //post about sequence on 12.4 log says we shouldn't care about oldindexpath
             if let indexPath = indexPath{
                 let row = indexPath.item
                 for column in 0..<tableView.numberOfColumns{

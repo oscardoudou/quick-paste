@@ -88,16 +88,51 @@ public class DataController: NSObject{
             print(" ❌ Failed to remove Copied \(error.localizedDescription) ")
         }
     }
+    public func deleteAll(){
+        print("--------inside deleteAll--------")
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Copied")
+        fetchRequest.predicate = NSPredicate(format: "id>%lld", Int64(-1))
+        let batchRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        batchRequest.resultType = NSBatchDeleteRequestResultType.resultTypeObjectIDs
+        let privateMOC = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
+        privateMOC.parent = context
+        privateMOC.perform(){
+            do{
+                let res = try privateMOC.execute(batchRequest) as? NSBatchDeleteResult
+                let objectIDArray = res?.result as? [NSManagedObjectID]
+//                dump(objectIDArray)
+                let changes = [NSDeletedObjectsKey : objectIDArray]
+//                dump(changes)
+//                try privateMOC.save()
+                //avoid starting with non-zero id after clear, set maxId to "" right after batchDelete execute
+                let defaults = UserDefaults.standard
+                defaults.set("", forKey: "maxId")
+                self.context.performAndWait {
+                    do{
+                        NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [self.context])
+                        try self.context.save()
+                    }catch let error{
+                        print(" ❌ Failed to merge changes or context on main queue fail to save: \(error)")
+                    }
+                }
+            }catch let error{
+                print(" ❌ Failed to batch delete or private queue fail to save: \(error)")
+            }
+        }
+    }
     
-    public func fetch(id: Int)->Copied{
+    public func fetch(id: Int)->Copied?{
 //        construct fetchRequest
         let fetchRequest = NSFetchRequest<Copied>(entityName: "Copied")
 //        use predicate filter fetchRequest
         fetchRequest.predicate = NSPredicate(format: "id==%lld", Int64(id) )
-        var res = NSEntityDescription.insertNewObject(forEntityName: "Copied", into: context) as! Copied
-        res.id = Int64(-1)
+        var res:Copied?
         do{
+            //even if no record fetched the result set is not nil
             let copieds = try context.fetch(fetchRequest)
+            guard  copieds.count > 0 else{
+                return res
+            }
             print("\(copieds[0].id)")
             print("\(copieds[0].name ?? "NAME")")
             print("\(copieds[0].path)")
