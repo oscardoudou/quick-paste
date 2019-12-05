@@ -115,8 +115,11 @@ class ViewController: NSViewController {
         if(item.type == "public.png"){
             NSPasteboard.general.setData(item.thumbnail!, forType: NSPasteboard.PasteboardType.init("public.png"))
         }else{
-        NSPasteboard.general.setString(item.path!, forType: NSPasteboard.PasteboardType.init(item.type!))
-        NSPasteboard.general.setString(item.name!, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+            //data error may lead to unwrap failure, though now it seems not possible, so using if let to safely unwrap
+            if let path = item.path, let type = item.type, let name = item.name {
+                NSPasteboard.general.setString(path, forType: NSPasteboard.PasteboardType.init(type))
+                NSPasteboard.general.setString(name, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
+            }
         }
         print("we copy entry content to pasteboard")
         appDelegate.printPasteBoard()
@@ -145,12 +148,13 @@ class ViewController: NSViewController {
             print("detected deletetable. View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
             var popOverWindow: NSWindow?
             NSApplication.shared.windows.forEach{window in
-                print(window.className)
+//                print(window.className)
                 if(window.className.contains("Popover")){
-                    popOverWindow = window; print(popOverWindow)
+                    popOverWindow = window
+//                    print(popOverWindow)
                 }
             }
-            if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true{
+            if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true && popOverWindow!.isKeyWindow {
                 //focus change to searchfield only if no entry left
                 let changeFocusToSearchBar = copieds!.count == 1 ? true : false
                 //currently only support delete on record
