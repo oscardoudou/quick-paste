@@ -19,6 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var firstParenthesisEntry = true
     var maxCharacterSize = 255
     let preferTypes: [NSPasteboard.PasteboardType] = [NSPasteboard.PasteboardType.init("public.file-url"),NSPasteboard.PasteboardType.init("public.utf8-plain-text"),NSPasteboard.PasteboardType.init("public.png")]
+    let mobileTypes: [NSPasteboard.PasteboardType] = [NSPasteboard.PasteboardType.init("iOS rich content paste pasteboard type"), NSPasteboard.PasteboardType.init("com.apple.mobilemail.attachment-ids"),NSPasteboard.PasteboardType.init("com.apple.is-remote-clipboard")]
     var timer: Timer!
     var lastChangeCount: Int = 0
     let pasteboard = NSPasteboard.general
@@ -161,12 +162,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let id = defaults.string(forKey: "maxId") == "" ? 0 : Int(defaults.string(forKey: "maxId")!)!
             print("id in appdelegate bindIt(): \(id)")
             let preferType = item.availableType(from: preferTypes)!
+            var isMobile = false
+            if let mobileType = item.availableType(from: mobileTypes){
+                isMobile = true
+            }
             print("Prefer type is: \(preferType)")
+            print("isMobile: \(isMobile)")
             if preferType.rawValue == "public.utf8-plain-text"{
                 title = item.string(forType: preferType) ?? "NoText"
                 //NSPasteboard.general.clearContents()
                 print("plaintext is: \(title)")
-                dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date())
+                dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date(), device: isMobile == true ? "mobile" : "mac" )
             }
             else if preferType.rawValue == "public.file-url"{
                 path = item.string(forType: preferType) ?? "NoPath"
@@ -174,7 +180,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 title = item.string(forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text")) ?? "NoFileName"
                 //NSPasteboard.general.clearContents()
                 print("path is: \(path)")
-                dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date())
+                dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date(), device: isMobile == true ? "mobile" : "mac")
             }
             else if preferType.rawValue == "public.png"{
                 data = item.data(forType: NSPasteboard.PasteboardType.init("public.png")) ?? Data()
@@ -183,7 +189,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 dateFormatter.timeStyle = .medium
                 let timesstamp = "\(dateFormatter.string(from: date))"
                 title = "Screen Shot at \(timesstamp)"
-                dataController.createCopied(id: id, title: title, type: preferType.rawValue, data: data, timestamp: date)
+                dataController.createCopied(id: id, title: title, type: preferType.rawValue, data: data, timestamp: date, device: isMobile == true ? "mobile" : "mac")
             }
             else{
 //                TODO

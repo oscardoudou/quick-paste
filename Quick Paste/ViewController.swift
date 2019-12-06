@@ -404,7 +404,7 @@ extension ViewController: NSTableViewDelegate {
         case 1:
             cellIdentifier = "TimeCellId"
         case 2:
-            cellIdentifier = "OtherCellId"
+            cellIdentifier = "DeviceCellId"
         default:
             return nil
         }
@@ -431,7 +431,7 @@ extension ViewController: NSTableViewDelegate {
         var image: NSImage?
         var name: String?
         var time: String?
-        var other: String?
+        var device: String?
         var text: String?
         let dateFormatter = DateFormatter()
         let copied = fetchedResultsController.fetchedObjects![row]
@@ -445,8 +445,11 @@ extension ViewController: NSTableViewDelegate {
             time = copied.timestamp != nil ? dateFormatter.string(from: copied.timestamp!) : "notime"
             text = time
         case 2:
-            other = String(copied.id)
-            text = other
+            device = String(copied.id)
+            if let deviceNonOptional = copied.device{
+              device = deviceNonOptional == "mac" ? "🖥" : "📱"
+            }
+            text = device
         default:
             break
         }
