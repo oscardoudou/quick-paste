@@ -14,7 +14,7 @@ class ViewController: NSViewController {
     @IBOutlet weak var searchField: NSSearchField!
     @IBOutlet weak var tableView: NSTableView!
     var consolidator : NSFRCChangeConsolidator?
-    var container: NSPersistentContainer!
+//    var container: NSPersistentContainer!
     //store managedObject array of current view
     var copieds : [Copied]?
     var fetchPredicate : NSPredicate? {
@@ -25,8 +25,10 @@ class ViewController: NSViewController {
     }
     var appDelegate : AppDelegate!
     var dataController : DataController!
+    private var dataSource: CopiedDataSource!
     private lazy var fetchedResultsController: NSFetchedResultsController<Copied> = {
-        let context = container.viewContext
+//        let context = container.viewContext
+        let context = dataController.context
         let fetchRequest = NSFetchRequest<Copied>(entityName: "Copied")
         let nameSort = NSSortDescriptor(key: "timestamp", ascending: false)
         fetchRequest.sortDescriptors = [nameSort]
@@ -46,7 +48,8 @@ class ViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         appDelegate = NSApplication.shared.delegate as! AppDelegate
-        guard container != nil else{
+//        guard container != nil else{
+        guard dataController.persistentContainer != nil else{
             fatalError("This view need a persistent container")
         }
         // Do any additional setup after loading the view.
@@ -57,7 +60,9 @@ class ViewController: NSViewController {
         }
         copieds = fetchedResultsController.fetchedObjects
         tableView.delegate = self
-        tableView.dataSource = self
+        dataSource = CopiedDataSource()
+        dataSource.fetchedResultsController = fetchedResultsController
+        tableView.dataSource = dataSource
         searchField.delegate = self
         tableView.action = #selector(copyOnSelect)
         print("AXIsProcessTrusted(): \(AXIsProcessTrusted())")
@@ -458,11 +463,4 @@ extension ViewController: NSTableViewDelegate {
     }
 }
 
-extension ViewController: NSTableViewDataSource{
-    // 1/2 have to implement function to show core data in table view
-    func numberOfRows(in tableView: NSTableView) -> Int {
-        let count = fetchedResultsController.fetchedObjects?.count
-        print("Number of Rows: \(count)")
-        return count ?? 0
-    }
-}
+

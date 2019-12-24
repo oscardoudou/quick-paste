@@ -59,7 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         //grab the view controller and pass a Persistent Container Reference to a View Controller
 //        if let viewController =  ViewController.freshController() as? ViewController{
-            viewController.container = dataController.persistentContainer
+//            viewController.container = dataController.persistentContainer
             viewController.dataController = self.dataController
             popover.contentViewController =  viewController
 //        }

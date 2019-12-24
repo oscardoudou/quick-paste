@@ -11,6 +11,7 @@
 		3B0F8CF821F68B0F001CF701 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B0F8CF721F68B0F001CF701 /* Assets.xcassets */; };
 		3B10BAD023490CF50029AED3 /* Quick Paste.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3B10BACE23490CF50029AED3 /* Quick Paste.xcdatamodeld */; };
 		3B10BAD223491C7F0029AED3 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B10BAD123491C7F0029AED3 /* DataController.swift */; };
+		3B3DE77D23B009AC00F248D3 /* CopiedDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B3DE77C23B009AC00F248D3 /* CopiedDataSource.swift */; };
 		3B56842323978AF700338B07 /* NSFRCChangeConsolidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B56842223978AF700338B07 /* NSFRCChangeConsolidator.swift */; };
 		3B80A20521D1C2EF003C0156 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B80A20421D1C2EF003C0156 /* AppDelegate.swift */; };
 		3B80A20721D1C2EF003C0156 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B80A20621D1C2EF003C0156 /* ViewController.swift */; };
@@ -23,6 +24,7 @@
 		3B0F8CF721F68B0F001CF701 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3B10BACF23490CF50029AED3 /* Quick Paste.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Quick Paste.xcdatamodel"; sourceTree = "<group>"; };
 		3B10BAD123491C7F0029AED3 /* DataController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataController.swift; sourceTree = "<group>"; };
+		3B3DE77C23B009AC00F248D3 /* CopiedDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopiedDataSource.swift; sourceTree = "<group>"; };
 		3B56842223978AF700338B07 /* NSFRCChangeConsolidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSFRCChangeConsolidator.swift; sourceTree = "<group>"; };
 		3B80A20121D1C2EF003C0156 /* Quick Paste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Quick Paste.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B80A20421D1C2EF003C0156 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -74,6 +76,7 @@
 				3B014F5F235C057600838648 /* LocalEventMonitor.swift */,
 				3B80A20A21D1C2F0003C0156 /* Main.storyboard */,
 				3B80A20D21D1C2F0003C0156 /* Info.plist */,
+				3B3DE77C23B009AC00F248D3 /* CopiedDataSource.swift */,
 			);
 			path = "Quick Paste";
 			sourceTree = "<group>";
@@ -153,6 +156,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3B3DE77D23B009AC00F248D3 /* CopiedDataSource.swift in Sources */,
 				3B10BAD023490CF50029AED3 /* Quick Paste.xcdatamodeld in Sources */,
 				3B014F60235C057600838648 /* LocalEventMonitor.swift in Sources */,
 				3BD1CE48235EB5F700F4E18A /* GlobalEventMonitor.swift in Sources */,
