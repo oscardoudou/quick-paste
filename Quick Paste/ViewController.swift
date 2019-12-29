@@ -14,6 +14,7 @@ class ViewController: NSViewController {
     @IBOutlet weak var searchField: NSSearchField!
     @IBOutlet weak var tableView: NSTableView!
     var consolidator : NSFRCChangeConsolidator?
+    var rowToBeFocusedIndex: NSIndexSet!
 //    var container: NSPersistentContainer!
     //store managedObject array of current view
     var copieds : [Copied]?
@@ -164,6 +165,12 @@ class ViewController: NSViewController {
             }
             if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true && popOverWindow!.isKeyWindow {
                 //focus change to searchfield only if no entry left
+                print("deleting row: \(tableView.selectedRow)")
+                //if deleting row is last row, focus on prev index instead of sticking to same index of deleting row
+                let rowToBeFocused = tableView.selectedRow == copieds!.count-1 ? tableView.selectedRow-1: tableView.selectedRow
+                print("rowToBeFocused: \(rowToBeFocused)")
+                //even if you selectRowIndexes here, it won't work at this point even put it after deleteIt(core data processing is done), since tableview UI hasn't start yet.
+                rowToBeFocusedIndex = NSIndexSet(index: rowToBeFocused)
                 let changeFocusToSearchBar = copieds!.count == 1 ? true : false
                 //currently only support delete on record
                 if tableView.selectedRow >= 0 {
@@ -316,6 +323,7 @@ extension ViewController: NSSearchFieldDelegate{
 extension ViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         print("tableViewBeginUpdates")
+        print("tableView select row before tableview UI update: \(tableView.selectedRow)")
         consolidator = NSFRCChangeConsolidator()
         tableView.beginUpdates()
     }
@@ -337,6 +345,13 @@ extension ViewController: NSFetchedResultsControllerDelegate {
         tableView.endUpdates()
         //deallocate consolidator
         consolidator = nil
+        print("tableView select row before manual set: \(tableView.selectedRow)")
+        print("rowToBeFocusedIndex: \(rowToBeFocusedIndex)")
+        //if rowToBeFocus is -1, rowToBeFocusIndex would be nil, that would lead to stmt below unwrap nil(crash)
+        if rowToBeFocusedIndex != nil{
+            tableView.selectRowIndexes(rowToBeFocusedIndex as IndexSet, byExtendingSelection: false)
+        }
+        print("tableView select row after manual set: \(tableView.selectedRow)")
         print("tableViewEndUpdates")
     }
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,didChange anObject: Any, at indexPath: IndexPath?,for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?){
