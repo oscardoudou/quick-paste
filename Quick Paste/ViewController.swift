@@ -44,8 +44,11 @@ class ViewController: NSViewController {
     }()
     override func viewDidAppear() {
         super.viewDidAppear()
+        print("in viewDidAppear")
         //after using CustomView searchfield is not auto focused anymore
-        searchField.window?.makeFirstResponder(searchField)
+        if(tableView.selectedRow == -1){
+            searchField.window?.makeFirstResponder(searchField)
+        }
     }
     override func viewDidLoad() {
         super.viewDidLoad()

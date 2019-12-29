@@ -101,6 +101,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
       if let button = statusItem.button {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
       }
+        print("in showPopover")
         localEventMonitor.start()
         globalEventMonitor.start()
     }
