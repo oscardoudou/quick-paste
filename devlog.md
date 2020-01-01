@@ -12,6 +12,7 @@
 8. shortcut launch 
 9. copy when return on focus item
 10. clear all
+
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
@@ -30,7 +31,7 @@
 - [ ] fix file display
 
 ## Project Structure
-- [ ] refactor AppDelegate and ViewController
+- [x] naive refactor ViewController
 - [x] use core data managed object and corresponding class(currently no subclass)
 - [x] show history in popover and table instead of status bar menu
 ## Feature
@@ -64,5 +65,10 @@
 19. shortcut launch
 20. copy when return on focus item
 21. clear all record
+22. source placeholder
+23. separate data source and tableView delegate from viewcontroller
+24. enhance focus behavior(focus on same record when reopen popover & focus remain nearby after deletion)
+25. little visual improvement(enlarge visual assets, exchange column order)
+
 ## Inspiration
 Initially it is just a simple tool to facilate my job application filling process. When I did job hunting, my mac was slow. Opening too many app(Adobe Reader, MS Word and too much safari chrome tab) significantly slow my mac. Copy paste repeatedly is tedious. So I came to the idea to store frequently copied items in menu bar for quick access. 

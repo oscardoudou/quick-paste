@@ -89,7 +89,7 @@ class ViewController: NSViewController {
             return
         }
         print("rowView\(tableView.rowView(atRow: tableView.selectedRow, makeIfNecessary: false))")
-        let cellView = tableView.view(atColumn: 0, row: tableView.selectedRow, makeIfNecessary: false)
+        let cellView = tableView.view(atColumn: 1, row: tableView.selectedRow, makeIfNecessary: false)
         print ("cellView\(cellView?.subviews[0])")
         let imageView = cellView?.subviews[0] as! NSImageView
         print("imageView hide status: \(imageView.isHidden)")

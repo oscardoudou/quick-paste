@@ -46,11 +46,11 @@ class CopiedTableViewDelegate: NSObject, NSTableViewDelegate {
             let column = tableView.tableColumns.firstIndex(of: tableColumn!)!
             switch column{
             case 0:
-                cellIdentifier = "NameCellId"
-            case 1:
-                cellIdentifier = "TimeCellId"
-            case 2:
                 cellIdentifier = "DeviceCellId"
+            case 1:
+                cellIdentifier = "NameCellId"
+            case 2:
+                cellIdentifier = "TimeCellId"
             default:
                 return nil
             }
@@ -58,13 +58,13 @@ class CopiedTableViewDelegate: NSObject, NSTableViewDelegate {
                 configureCell(cell: cell, row: row, column: column)
                 //pure text hide image
                 if(copied.thumbnail == nil){
-                    if(column == 0){
+                    if(column == 1){
                         cell.imageView?.isHidden = true
                         cell.textField?.isHidden = false
                     }
                 //if have image type data, hide text
                 }else{
-                    if(column == 0){
+                    if(column == 1){
                         cell.textField?.isHidden = true
                         cell.imageView?.isHidden = false
                     }
@@ -83,19 +83,19 @@ class CopiedTableViewDelegate: NSObject, NSTableViewDelegate {
             let copied = fetchedResultsController.fetchedObjects![row]
             switch column {
             case 0:
-                image = copied.thumbnail != nil ? NSImage(data: copied.thumbnail!) : NSImage(named: "stackoverflow")
-                name = copied.name
-                text = name
-            case 1:
-                dateFormatter.timeStyle = .medium
-                time = copied.timestamp != nil ? dateFormatter.string(from: copied.timestamp!) : "notime"
-                text = time
-            case 2:
                 device = String(copied.id)
                 if let deviceNonOptional = copied.device{
                   device = deviceNonOptional == "mac" ? "🖥" : "📱"
                 }
                 text = device
+            case 1:
+                image = copied.thumbnail != nil ? NSImage(data: copied.thumbnail!) : NSImage(named: "stackoverflow")
+                name = copied.name
+                text = name
+            case 2:
+                dateFormatter.timeStyle = .medium
+                time = copied.timestamp != nil ? dateFormatter.string(from: copied.timestamp!) : "notime"
+                text = time
             default:
                 break
             }
