@@ -13,6 +13,7 @@ class ViewController: NSViewController {
 
     @IBOutlet weak var searchField: NSSearchField!
     @IBOutlet weak var tableView: NSTableView!
+    var detailViewController: DetailViewController!
     var consolidator : NSFRCChangeConsolidator?
     var rowToBeFocusedIndex: NSIndexSet!
 //    var container: NSPersistentContainer!
@@ -27,7 +28,8 @@ class ViewController: NSViewController {
     var appDelegate : AppDelegate!
     var dataController : DataController!
     private var dataSource: CopiedDataSource!
-    private var tableViewDelegate: CopiedTableViewDelegate!
+    //to make this property visible from outside, can't be private
+    var tableViewDelegate: CopiedTableViewDelegate!
     private lazy var fetchedResultsController: NSFetchedResultsController<Copied> = {
 //        let context = container.viewContext
         let context = dataController.context
@@ -51,9 +53,14 @@ class ViewController: NSViewController {
         }
     }
     override func viewDidLoad() {
+        print("inside viewDidLoad of ViewController:\(self)")
         super.viewDidLoad()
+        print("after ViewController super.viewDidLoad")
+        print("children are \(self.children)")
         appDelegate = NSApplication.shared.delegate as! AppDelegate
-//        guard container != nil else{
+        //make sure datacontroller reference of viewController is consistent with one initially created in appDelegate
+        print("datacontroller field in viewcontroller: \(dataController)")
+        print("appDelegate.dataController: \(appDelegate.dataController)")
         guard dataController.persistentContainer != nil else{
             fatalError("This view need a persistent container")
         }
@@ -68,6 +75,13 @@ class ViewController: NSViewController {
         dataSource.fetchedResultsController = fetchedResultsController
         tableViewDelegate = CopiedTableViewDelegate()
         tableViewDelegate.fetchedResultsController = fetchedResultsController
+        //tableViewDelegate need access selectedRow property of tableView, so this reference is necessary
+        tableViewDelegate.tableView = tableView
+        //tableViewDelegate would call detailViewController method when selection change, so this property is necessary, but at this point, this statement is useless, see comment one line after
+        tableViewDelegate.detailViewController = detailViewController
+        //here detailViewController will be nil, cause viewController's detailViewController hasn't been initialize due to splitViewController viewDidLoad hasn't finished yet. At this point, all lines after super.viewDidLoad hasn't executed yet as children view hasn't loaded yet(corresponding viewcontroller hasn't instantiated either)
+        //this print just give a sense that what correct initialize sequence is
+        print("tableViewDelegate.detailViewController: \(detailViewController)")
         tableView.dataSource = dataSource
         tableView.delegate = tableViewDelegate
         searchField.delegate = self
@@ -195,7 +209,7 @@ class ViewController: NSViewController {
 //            print("NSApplication.shared.windows:\(NSApplication.shared.windows)")
             var popOverWindow: NSWindow?
             NSApplication.shared.windows.forEach{window in
-                print(window.className)
+//                print(window.className)
                 if(window.className.contains("Popover")){
                     popOverWindow = window; print(popOverWindow)
                 }
@@ -268,17 +282,19 @@ class ViewController: NSViewController {
 
 extension ViewController {
   // MARK: Storyboard instantiation
-  static func freshController() -> ViewController {
-    //1.
-    let storyboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
-    //2.
-    let identifier = NSStoryboard.SceneIdentifier("ViewController")
-    //3.
-    guard let viewcontroller = storyboard.instantiateController(withIdentifier: identifier) as? ViewController else {
-      fatalError("Why cant i find ViewController? - Check Main.storyboard")
-    }
-    return viewcontroller
-  }
+//  static func freshController() -> ViewController {
+//    //1.
+//    let storyboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
+//    print("inside viewcontroller freshcontroller")
+//    //2.
+//    let identifier = NSStoryboard.SceneIdentifier("ViewController")
+//    //3.
+//    guard let viewcontroller = storyboard.instantiateController(withIdentifier: identifier) as? ViewController else {
+//      fatalError("Why cant i find ViewController? - Check Main.storyboard")
+//    }
+//    print("viewcontroller:\(viewcontroller)")
+//    return viewcontroller
+//  }
 }
 
 extension ViewController{
@@ -336,6 +352,13 @@ extension ViewController: NSFetchedResultsControllerDelegate {
                 for indexPath in rowDeletes{
                     tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
                 }
+                print("tableView select row before manual set: \(tableView.selectedRow)")
+                print("rowToBeFocusedIndex: \(rowToBeFocusedIndex)")
+                //if rowToBeFocus is -1, rowToBeFocusIndex would be nil, that would lead to stmt below unwrap nil(crash)
+                if rowToBeFocusedIndex != nil{
+                   tableView.selectRowIndexes(rowToBeFocusedIndex as IndexSet, byExtendingSelection: false)
+                }
+                print("tableView select row after manual set: \(tableView.selectedRow)")
             }
         }
         if let rowInserts = consolidator?.sortedRowInserts(){
@@ -348,17 +371,11 @@ extension ViewController: NSFetchedResultsControllerDelegate {
         tableView.endUpdates()
         //deallocate consolidator
         consolidator = nil
-        print("tableView select row before manual set: \(tableView.selectedRow)")
-        print("rowToBeFocusedIndex: \(rowToBeFocusedIndex)")
-        //if rowToBeFocus is -1, rowToBeFocusIndex would be nil, that would lead to stmt below unwrap nil(crash)
-        if rowToBeFocusedIndex != nil{
-            tableView.selectRowIndexes(rowToBeFocusedIndex as IndexSet, byExtendingSelection: false)
-        }
-        print("tableView select row after manual set: \(tableView.selectedRow)")
         print("tableViewEndUpdates")
     }
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,didChange anObject: Any, at indexPath: IndexPath?,for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?){
         consolidator?.ingestItemChange(ofType: type, oldIndexPath: indexPath, newIndexPath: newIndexPath)
+        print("tableView.selectedRow:\(tableView.selectedRow)")
         print("Change type \(type) for indexPath \(String(describing: indexPath)), newIndexPath \(String(describing: newIndexPath)). Changed object: \(anObject). FRC by this moment has \(String(describing: self.fetchedResultsController.fetchedObjects?.count)) objects, tableView has \(self.tableView.numberOfRows) rows")
         switch type {
         case .insert:

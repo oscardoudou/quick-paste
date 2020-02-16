@@ -26,7 +26,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var dataController: DataController!
     let popover = NSPopover()
     let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
-    var viewController: ViewController! = ViewController.freshController()
+    var splitViewController: SplitViewController! = SplitViewController.freshController()
+    var viewController: ViewController!
     lazy var localEventMonitor : LocalEventMonitor  = LocalEventMonitor(mask: .keyDown){[weak self]
         event in
         if let strongSelf = self {
@@ -46,13 +47,34 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         event in
         if let strongSelf = self {
             print(strongSelf.globalBringUpMonitor)
-            strongSelf.viewController.keyDown(with: event!)
+//            strongSelf.viewController.keyDown(with: event!)
+            strongSelf.keyDown(with: event!)
         }
     }
+    func keyDown(with event: NSEvent) {
+        if event.keyCode == 12{
+            print("q detected")
+            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask){
+            case[.control, .shift]:
+                print("control+shift");
+//                if(appDelegate == nil){
+//                    appDelegate = NSApplication.shared.delegate as! AppDelegate
+//                }
+                self.togglePopover(self.statusItem.button)
+            default:
+                break
+            }
+        }
+    }
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
 //         buildMenu()
+        print("applicationDidFinishLaunching start")
+        print("\(splitViewController.splitViewItems)")
+        viewController = splitViewController.viewItem.viewController as! ViewController
         dataController = DataController()
+        print("appdelegate datacontroller:\(dataController)")
         if let button = statusItem.button {
           button.image = NSImage(named:"paste")
           button.action = #selector(togglePopover)
@@ -61,7 +83,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 //        if let viewController =  ViewController.freshController() as? ViewController{
 //            viewController.container = dataController.persistentContainer
             viewController.dataController = self.dataController
-            popover.contentViewController =  viewController
+        print("datacontroller of viewcontroller: \(viewController.dataController)")
+        //popover's contentViewController is not original ViewController any more, is splitViewController
+        popover.contentViewController = splitViewController
 //        }
         //url scheme
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
@@ -99,9 +123,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func showPopover(sender: Any?) {
       if let button = statusItem.button {
+        print("inside showPopover")
+        print("to bring popover start loading popover contentviecontroller's view and its children views ")
+        //before actually execute popover.show, first need to make sure popover.contentViewController's view didLoad, which also involve child view's didLoad
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
       }
-        print("in showPopover")
+        print("after popover.show")
         localEventMonitor.start()
         globalEventMonitor.start()
     }

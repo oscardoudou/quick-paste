@@ -712,7 +712,7 @@
                                             <tableColumns>
                                                 <tableColumn width="34" minWidth="10" maxWidth="3.4028234663852886e+38" id="AAc-Aj-ZS9">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Device">
-                                                        <font key="font" metaFont="message" size="11"/>
+                                                        <font key="font" metaFont="label" size="11"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     </tableHeaderCell>
@@ -752,7 +752,7 @@
                                                 </tableColumn>
                                                 <tableColumn width="328" minWidth="40" maxWidth="1000" id="YhD-5B-MiE">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" title="Name">
-                                                        <font key="font" metaFont="message" size="11"/>
+                                                        <font key="font" metaFont="label" size="11"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                     </tableHeaderCell>
@@ -791,7 +791,7 @@
                                                 </tableColumn>
                                                 <tableColumn width="107" minWidth="10" maxWidth="3.4028234663852886e+38" id="ILP-nY-Ucx">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Time">
-                                                        <font key="font" metaFont="message" size="11"/>
+                                                        <font key="font" metaFont="label" size="11"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     </tableHeaderCell>
@@ -889,7 +889,47 @@
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="185" y="243.5"/>
+            <point key="canvasLocation" x="132" y="336"/>
+        </scene>
+        <!--Split View Controller-->
+        <scene sceneID="pT2-oR-Xl5">
+            <objects>
+                <splitViewController storyboardIdentifier="SplitViewController" id="Fe5-lA-eXA" customClass="SplitViewController" customModule="Quick_Paste" customModuleProvider="target" sceneMemberID="viewController">
+                    <splitViewItems>
+                        <splitViewItem id="QUY-c5-riy"/>
+                        <splitViewItem id="pzh-YS-Pcc"/>
+                    </splitViewItems>
+                    <splitView key="splitView" dividerStyle="thin" vertical="YES" id="XN0-3l-2ER">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <connections>
+                            <outlet property="delegate" destination="Fe5-lA-eXA" id="1dX-76-uvz"/>
+                        </connections>
+                    </splitView>
+                    <connections>
+                        <outlet property="detailViewItem" destination="pzh-YS-Pcc" id="heQ-xg-7vU"/>
+                        <outlet property="splitView" destination="XN0-3l-2ER" id="5fv-9r-L20"/>
+                        <outlet property="viewItem" destination="QUY-c5-riy" id="2Yf-hR-z1l"/>
+                        <segue destination="XfG-lQ-9wD" kind="relationship" relationship="splitItems" id="OAj-Nx-IW1"/>
+                        <segue destination="mhZ-kI-f7d" kind="relationship" relationship="splitItems" id="B0O-dM-YUR"/>
+                    </connections>
+                </splitViewController>
+                <customObject id="FMw-eL-qF1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-557" y="429"/>
+        </scene>
+        <!--Detail View Controller-->
+        <scene sceneID="uWN-1F-f11">
+            <objects>
+                <viewController storyboardIdentifier="DetailViewController" id="mhZ-kI-f7d" customClass="DetailViewController" customModule="Quick_Paste" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="hgA-36-SyH">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                </viewController>
+                <customObject id="525-Pf-OMd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="125" y="699"/>
         </scene>
     </scenes>
     <resources>

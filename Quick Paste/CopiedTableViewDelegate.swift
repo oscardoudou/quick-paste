@@ -10,6 +10,30 @@ import Cocoa
 
 class CopiedTableViewDelegate: NSObject, NSTableViewDelegate {
     var fetchedResultsController: NSFetchedResultsController<Copied>!
+    //both tableView and detailViewController reference are have-to have to allow detailViewVC work,
+    //and yet both refence instance are instantiated in other file, so timing to point to those reference is critical.
+    //eg: tableView is realy when ViewController's view is really, so reference to tableView could done in viewDidLoad of ViewController,
+    //while detailViewController won't be ready until detialViewController is instantiated, so safe place to referencing is in detailViewController's viewDidLoad or splitViewController viewDidLoad
+    //as splitViewController's view is parent view of detailVC'view and viewController's view, so it's view won't be ready until its children view ready
+    var tableView: NSTableView!
+    var detailViewController: DetailViewController!
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        print("inside tableViewSelectionDidChange")
+        print("tableView.selectedRow: \(tableView.selectedRow)")
+        print("detailViewController: \(detailViewController)")
+        detailViewController.getCopiedFromLeft()
+        print("before passing data to detailViewController")
+        if(tableView.selectedRow == -1){return}
+        if let copied = fetchedResultsController.fetchedObjects![tableView.selectedRow] as? Copied{
+            detailViewController.copied = copied
+            if(copied.thumbnail == nil){
+                detailViewController.showTextDetail()
+            }else{
+                detailViewController.showImageDetail()
+            }
+        }
+        detailViewController.getCopiedFromLeft()
+    }
     func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
             if let copied: Copied = fetchedResultsController.fetchedObjects![row] as? Copied{
                 if let thumbnail = copied.thumbnail as NSData?{
