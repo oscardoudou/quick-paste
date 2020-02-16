@@ -19,13 +19,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var firstParenthesisEntry = true
     var maxCharacterSize = 255
     let preferTypes: [NSPasteboard.PasteboardType] = [NSPasteboard.PasteboardType.init("public.file-url"),NSPasteboard.PasteboardType.init("public.utf8-plain-text"),NSPasteboard.PasteboardType.init("public.png")]
+    let mobileTypes: [NSPasteboard.PasteboardType] = [NSPasteboard.PasteboardType.init("iOS rich content paste pasteboard type"), NSPasteboard.PasteboardType.init("com.apple.mobilemail.attachment-ids"),NSPasteboard.PasteboardType.init("com.apple.is-remote-clipboard")]
     var timer: Timer!
     var lastChangeCount: Int = 0
     let pasteboard = NSPasteboard.general
     var dataController: DataController!
     let popover = NSPopover()
     let statusItem = NSStatusBar.system.statusItem(withLength:NSStatusItem.squareLength)
-    var viewController: ViewController! = ViewController.freshController()
+    var splitViewController: SplitViewController! = SplitViewController.freshController()
+    var viewController: ViewController!
     lazy var localEventMonitor : LocalEventMonitor  = LocalEventMonitor(mask: .keyDown){[weak self]
         event in
         if let strongSelf = self {
@@ -45,22 +47,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         event in
         if let strongSelf = self {
             print(strongSelf.globalBringUpMonitor)
-            strongSelf.viewController.keyDown(with: event!)
+//            strongSelf.viewController.keyDown(with: event!)
+            strongSelf.keyDown(with: event!)
         }
     }
+    func keyDown(with event: NSEvent) {
+        if event.keyCode == 12{
+            print("q detected")
+            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask){
+            case[.control, .shift]:
+                print("control+shift");
+//                if(appDelegate == nil){
+//                    appDelegate = NSApplication.shared.delegate as! AppDelegate
+//                }
+                self.togglePopover(self.statusItem.button)
+            default:
+                break
+            }
+        }
+    }
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
 //         buildMenu()
+        print("applicationDidFinishLaunching start")
+        print("\(splitViewController.splitViewItems)")
+        viewController = splitViewController.viewItem.viewController as! ViewController
         dataController = DataController()
+        print("appdelegate datacontroller:\(dataController)")
         if let button = statusItem.button {
           button.image = NSImage(named:"paste")
           button.action = #selector(togglePopover)
         }
         //grab the view controller and pass a Persistent Container Reference to a View Controller
 //        if let viewController =  ViewController.freshController() as? ViewController{
-            viewController.container = dataController.persistentContainer
+//            viewController.container = dataController.persistentContainer
             viewController.dataController = self.dataController
-            popover.contentViewController =  viewController
+        print("datacontroller of viewcontroller: \(viewController.dataController)")
+        //popover's contentViewController is not original ViewController any more, is splitViewController
+        popover.contentViewController = splitViewController
 //        }
         //url scheme
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
@@ -98,8 +123,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func showPopover(sender: Any?) {
       if let button = statusItem.button {
+        print("inside showPopover")
+        print("to bring popover start loading popover contentviecontroller's view and its children views ")
+        //before actually execute popover.show, first need to make sure popover.contentViewController's view didLoad, which also involve child view's didLoad
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
       }
+        print("after popover.show")
         localEventMonitor.start()
         globalEventMonitor.start()
     }
@@ -161,12 +190,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let id = defaults.string(forKey: "maxId") == "" ? 0 : Int(defaults.string(forKey: "maxId")!)!
             print("id in appdelegate bindIt(): \(id)")
             let preferType = item.availableType(from: preferTypes)!
+            var isMobile = false
+            if let mobileType = item.availableType(from: mobileTypes){
+                isMobile = true
+            }
             print("Prefer type is: \(preferType)")
+            print("isMobile: \(isMobile)")
             if preferType.rawValue == "public.utf8-plain-text"{
                 title = item.string(forType: preferType) ?? "NoText"
                 //NSPasteboard.general.clearContents()
                 print("plaintext is: \(title)")
-                dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date())
+                dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date(), device: isMobile == true ? "mobile" : "mac" )
             }
             else if preferType.rawValue == "public.file-url"{
                 path = item.string(forType: preferType) ?? "NoPath"
@@ -174,7 +208,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 title = item.string(forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text")) ?? "NoFileName"
                 //NSPasteboard.general.clearContents()
                 print("path is: \(path)")
-                dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date())
+                dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date(), device: isMobile == true ? "mobile" : "mac")
             }
             else if preferType.rawValue == "public.png"{
                 data = item.data(forType: NSPasteboard.PasteboardType.init("public.png")) ?? Data()
@@ -183,7 +217,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 dateFormatter.timeStyle = .medium
                 let timesstamp = "\(dateFormatter.string(from: date))"
                 title = "Screen Shot at \(timesstamp)"
-                dataController.createCopied(id: id, title: title, type: preferType.rawValue, data: data, timestamp: date)
+                dataController.createCopied(id: id, title: title, type: preferType.rawValue, data: data, timestamp: date, device: isMobile == true ? "mobile" : "mac")
             }
             else{
 //                TODO

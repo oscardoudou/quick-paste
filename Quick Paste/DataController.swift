@@ -60,8 +60,8 @@ public class DataController: NSObject{
             }
         }
     }
-    
-    public func createCopied(id: Int, title: String, path: String = "", type: String, data: Data? = nil, timestamp: Date){
+    //path is default param(could be omit), data is optional
+    public func createCopied(id: Int, title: String, path: String = "", type: String, data: Data? = nil, timestamp: Date, device: String = "mac"){
         let copied = NSEntityDescription.insertNewObject(forEntityName: "Copied", into: context) as! Copied
         copied.id = Int64(id)
         copied.name = title
@@ -69,6 +69,7 @@ public class DataController: NSObject{
         copied.thumbnail = data
         copied.timestamp = timestamp
         copied.type = type
+        copied.device = device
         print ("copied object \(copied.id) is set")
         //print("data == nil ? \(data == nil)")
         do{

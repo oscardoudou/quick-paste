@@ -13,8 +13,10 @@ class ViewController: NSViewController {
 
     @IBOutlet weak var searchField: NSSearchField!
     @IBOutlet weak var tableView: NSTableView!
+    var detailViewController: DetailViewController!
     var consolidator : NSFRCChangeConsolidator?
-    var container: NSPersistentContainer!
+    var rowToBeFocusedIndex: NSIndexSet!
+//    var container: NSPersistentContainer!
     //store managedObject array of current view
     var copieds : [Copied]?
     var fetchPredicate : NSPredicate? {
@@ -25,8 +27,12 @@ class ViewController: NSViewController {
     }
     var appDelegate : AppDelegate!
     var dataController : DataController!
+    private var dataSource: CopiedDataSource!
+    //to make this property visible from outside, can't be private
+    var tableViewDelegate: CopiedTableViewDelegate!
     private lazy var fetchedResultsController: NSFetchedResultsController<Copied> = {
-        let context = container.viewContext
+//        let context = container.viewContext
+        let context = dataController.context
         let fetchRequest = NSFetchRequest<Copied>(entityName: "Copied")
         let nameSort = NSSortDescriptor(key: "timestamp", ascending: false)
         fetchRequest.sortDescriptors = [nameSort]
@@ -40,13 +46,22 @@ class ViewController: NSViewController {
     }()
     override func viewDidAppear() {
         super.viewDidAppear()
+        print("in viewDidAppear")
         //after using CustomView searchfield is not auto focused anymore
-        searchField.window?.makeFirstResponder(searchField)
+        if(tableView.selectedRow == -1){
+            searchField.window?.makeFirstResponder(searchField)
+        }
     }
     override func viewDidLoad() {
+        print("inside viewDidLoad of ViewController:\(self)")
         super.viewDidLoad()
+        print("after ViewController super.viewDidLoad")
+        print("children are \(self.children)")
         appDelegate = NSApplication.shared.delegate as! AppDelegate
-        guard container != nil else{
+        //make sure datacontroller reference of viewController is consistent with one initially created in appDelegate
+        print("datacontroller field in viewcontroller: \(dataController)")
+        print("appDelegate.dataController: \(appDelegate.dataController)")
+        guard dataController.persistentContainer != nil else{
             fatalError("This view need a persistent container")
         }
         // Do any additional setup after loading the view.
@@ -56,8 +71,19 @@ class ViewController: NSViewController {
             fatalError("Failed to fecth entites: \(error)")
         }
         copieds = fetchedResultsController.fetchedObjects
-        tableView.delegate = self
-        tableView.dataSource = self
+        dataSource = CopiedDataSource()
+        dataSource.fetchedResultsController = fetchedResultsController
+        tableViewDelegate = CopiedTableViewDelegate()
+        tableViewDelegate.fetchedResultsController = fetchedResultsController
+        //tableViewDelegate need access selectedRow property of tableView, so this reference is necessary
+        tableViewDelegate.tableView = tableView
+        //tableViewDelegate would call detailViewController method when selection change, so this property is necessary, but at this point, this statement is useless, see comment one line after
+        tableViewDelegate.detailViewController = detailViewController
+        //here detailViewController will be nil, cause viewController's detailViewController hasn't been initialize due to splitViewController viewDidLoad hasn't finished yet. At this point, all lines after super.viewDidLoad hasn't executed yet as children view hasn't loaded yet(corresponding viewcontroller hasn't instantiated either)
+        //this print just give a sense that what correct initialize sequence is
+        print("tableViewDelegate.detailViewController: \(detailViewController)")
+        tableView.dataSource = dataSource
+        tableView.delegate = tableViewDelegate
         searchField.delegate = self
         tableView.action = #selector(copyOnSelect)
         print("AXIsProcessTrusted(): \(AXIsProcessTrusted())")
@@ -77,7 +103,7 @@ class ViewController: NSViewController {
             return
         }
         print("rowView\(tableView.rowView(atRow: tableView.selectedRow, makeIfNecessary: false))")
-        let cellView = tableView.view(atColumn: 0, row: tableView.selectedRow, makeIfNecessary: false)
+        let cellView = tableView.view(atColumn: 1, row: tableView.selectedRow, makeIfNecessary: false)
         print ("cellView\(cellView?.subviews[0])")
         let imageView = cellView?.subviews[0] as! NSImageView
         print("imageView hide status: \(imageView.isHidden)")
@@ -156,6 +182,12 @@ class ViewController: NSViewController {
             }
             if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true && popOverWindow!.isKeyWindow {
                 //focus change to searchfield only if no entry left
+                print("deleting row: \(tableView.selectedRow)")
+                //if deleting row is last row, focus on prev index instead of sticking to same index of deleting row
+                let rowToBeFocused = tableView.selectedRow == copieds!.count-1 ? tableView.selectedRow-1: tableView.selectedRow
+                print("rowToBeFocused: \(rowToBeFocused)")
+                //even if you selectRowIndexes here, it won't work at this point even put it after deleteIt(core data processing is done), since tableview UI hasn't start yet.
+                rowToBeFocusedIndex = NSIndexSet(index: rowToBeFocused)
                 let changeFocusToSearchBar = copieds!.count == 1 ? true : false
                 //currently only support delete on record
                 if tableView.selectedRow >= 0 {
@@ -177,7 +209,7 @@ class ViewController: NSViewController {
 //            print("NSApplication.shared.windows:\(NSApplication.shared.windows)")
             var popOverWindow: NSWindow?
             NSApplication.shared.windows.forEach{window in
-                print(window.className)
+//                print(window.className)
                 if(window.className.contains("Popover")){
                     popOverWindow = window; print(popOverWindow)
                 }
@@ -250,17 +282,19 @@ class ViewController: NSViewController {
 
 extension ViewController {
   // MARK: Storyboard instantiation
-  static func freshController() -> ViewController {
-    //1.
-    let storyboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
-    //2.
-    let identifier = NSStoryboard.SceneIdentifier("ViewController")
-    //3.
-    guard let viewcontroller = storyboard.instantiateController(withIdentifier: identifier) as? ViewController else {
-      fatalError("Why cant i find ViewController? - Check Main.storyboard")
-    }
-    return viewcontroller
-  }
+//  static func freshController() -> ViewController {
+//    //1.
+//    let storyboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
+//    print("inside viewcontroller freshcontroller")
+//    //2.
+//    let identifier = NSStoryboard.SceneIdentifier("ViewController")
+//    //3.
+//    guard let viewcontroller = storyboard.instantiateController(withIdentifier: identifier) as? ViewController else {
+//      fatalError("Why cant i find ViewController? - Check Main.storyboard")
+//    }
+//    print("viewcontroller:\(viewcontroller)")
+//    return viewcontroller
+//  }
 }
 
 extension ViewController{
@@ -308,6 +342,7 @@ extension ViewController: NSSearchFieldDelegate{
 extension ViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         print("tableViewBeginUpdates")
+        print("tableView select row before tableview UI update: \(tableView.selectedRow)")
         consolidator = NSFRCChangeConsolidator()
         tableView.beginUpdates()
     }
@@ -317,6 +352,13 @@ extension ViewController: NSFetchedResultsControllerDelegate {
                 for indexPath in rowDeletes{
                     tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
                 }
+                print("tableView select row before manual set: \(tableView.selectedRow)")
+                print("rowToBeFocusedIndex: \(rowToBeFocusedIndex)")
+                //if rowToBeFocus is -1, rowToBeFocusIndex would be nil, that would lead to stmt below unwrap nil(crash)
+                if rowToBeFocusedIndex != nil{
+                   tableView.selectRowIndexes(rowToBeFocusedIndex as IndexSet, byExtendingSelection: false)
+                }
+                print("tableView select row after manual set: \(tableView.selectedRow)")
             }
         }
         if let rowInserts = consolidator?.sortedRowInserts(){
@@ -333,6 +375,7 @@ extension ViewController: NSFetchedResultsControllerDelegate {
     }
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,didChange anObject: Any, at indexPath: IndexPath?,for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?){
         consolidator?.ingestItemChange(ofType: type, oldIndexPath: indexPath, newIndexPath: newIndexPath)
+        print("tableView.selectedRow:\(tableView.selectedRow)")
         print("Change type \(type) for indexPath \(String(describing: indexPath)), newIndexPath \(String(describing: newIndexPath)). Changed object: \(anObject). FRC by this moment has \(String(describing: self.fetchedResultsController.fetchedObjects?.count)) objects, tableView has \(self.tableView.numberOfRows) rows")
         switch type {
         case .insert:
@@ -349,7 +392,7 @@ extension ViewController: NSFetchedResultsControllerDelegate {
                 let row = indexPath.item
                 for column in 0..<tableView.numberOfColumns{
                     if let cell = tableView.view(atColumn: column, row: row, makeIfNecessary: true) as? NSTableCellView{
-                        configureCell(cell: cell, row: row, column: column)
+                        tableViewDelegate.configureCell(cell: cell, row: row, column: column)
                     }
                 }
             }
@@ -363,103 +406,5 @@ extension ViewController: NSFetchedResultsControllerDelegate {
         copieds = fetchedResultsController.fetchedObjects
     }
 }
-extension ViewController: NSTableViewDelegate {
-    func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
-        if let copied: Copied = fetchedResultsController.fetchedObjects![row] as? Copied{
-            if let thumbnail = copied.thumbnail as NSData?{
-//                let tv: NSImageView = NSImageView(image: NSImage(data: copied.thumbnail!)!)
-//                let someWidth: CGFloat = tableView.frame.size.width
-//                let frame: NSRect = NSMakeRect(0, 0, someWidth, CGFloat.greatestFiniteMagnitude)
-//                let tv: NSImageView = NSImageView(frame: frame)
-//                print("Before sizeToFit\(tv.frame.size.height)")
-//                tv.sizeToFit()
-//                print("After sizeToFit\(tv.frame.size.height)")
-                return 70
-            }
-            if let string: String = copied.name{
-                let someWidth: CGFloat = tableView.frame.size.width
-                let stringAttributes = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 12)] //change to font/size u are using
-                let attrString: NSAttributedString = NSAttributedString(string: string, attributes: stringAttributes)
-                let frame: NSRect = NSMakeRect(0, 0, someWidth, CGFloat.greatestFiniteMagnitude)
-                let tv: NSTextView = NSTextView(frame: frame)
-                tv.textStorage?.setAttributedString(attrString)
-                tv.isHorizontallyResizable = false
-                tv.sizeToFit()
-                let height: CGFloat = tv.frame.size.height + 17 // + other objects...
-                return height
-            }
-        }
-        return 17
-    }
-    // 2/2 have to implement function to show core data in table view
-    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-        var cellIdentifier: String = ""
-//        var cell: NSTableCellView!
-        //probably should guard
-        let copied :Copied = fetchedResultsController.fetchedObjects![row]
-        let column = tableView.tableColumns.firstIndex(of: tableColumn!)!
-        switch column{
-        case 0:
-            cellIdentifier = "NameCellId"
-        case 1:
-            cellIdentifier = "TimeCellId"
-        case 2:
-            cellIdentifier = "OtherCellId"
-        default:
-            return nil
-        }
-        if let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: nil) as? NSTableCellView{
-            configureCell(cell: cell, row: row, column: column)
-            //pure text hide image
-            if(copied.thumbnail == nil){
-                if(column == 0){
-                    cell.imageView?.isHidden = true
-                    cell.textField?.isHidden = false
-                }
-            //if have image type data, hide text
-            }else{
-                if(column == 0){
-                    cell.textField?.isHidden = true
-                    cell.imageView?.isHidden = false
-                }
-            }
-            return cell
-        }
-        return nil
-    }
-    private func configureCell(cell: NSTableCellView, row: Int, column: Int){
-        var image: NSImage?
-        var name: String?
-        var time: String?
-        var other: String?
-        var text: String?
-        let dateFormatter = DateFormatter()
-        let copied = fetchedResultsController.fetchedObjects![row]
-        switch column {
-        case 0:
-            image = copied.thumbnail != nil ? NSImage(data: copied.thumbnail!) : NSImage(named: "stackoverflow")
-            name = copied.name
-            text = name
-        case 1:
-            dateFormatter.timeStyle = .medium
-            time = copied.timestamp != nil ? dateFormatter.string(from: copied.timestamp!) : "notime"
-            text = time
-        case 2:
-            other = String(copied.id)
-            text = other
-        default:
-            break
-        }
-        cell.textField?.stringValue = text != nil ? text! : "default"
-        cell.imageView?.image = image
-    }
-}
 
-extension ViewController: NSTableViewDataSource{
-    // 1/2 have to implement function to show core data in table view
-    func numberOfRows(in tableView: NSTableView) -> Int {
-        let count = fetchedResultsController.fetchedObjects?.count
-        print("Number of Rows: \(count)")
-        return count ?? 0
-    }
-}
+

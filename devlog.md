@@ -12,6 +12,7 @@
 8. shortcut launch 
 9. copy when return on focus item
 10. clear all
+
 ## To Do
 - [x] key binding, menu seperator 
 - [x] support file
@@ -30,13 +31,14 @@
 - [ ] fix file display
 
 ## Project Structure
-- [ ] refactor AppDelegate and ViewController
+- [x] naive refactor ViewController
 - [x] use core data managed object and corresponding class(currently no subclass)
 - [x] show history in popover and table instead of status bar menu
 ## Feature
 - [x] remove copied activity record from history
 - [x] record screenshot stored to clipboard.(Default is cmd+shift+3+ctrl and cmd+shift+4+ctrl) 
 - [x] local shortcut paste using cmd+1~6
+- [x] show detail preview on side
 ## Issue
 - [x] avoid save most recent copied since last close, which end up duplicate search history. (use property firstTime check)
 - [x] copy it should not add new record, avoid this type of changeCount being trigger (set lastChangeCount same to changeCount)
@@ -64,5 +66,14 @@
 19. shortcut launch
 20. copy when return on focus item
 21. clear all record
+22. source placeholder
+23. separate data source and tableView delegate from viewcontroller
+24. enhance focus behavior(focus on same record when reopen popover & focus remain nearby after deletion)
+25. little visual improvement(enlarge visual assets, exchange column order)
+26. set up splitview(view present)
+27. connecet between viewcontroller and detailViewController
+28. fix deletion crash after connecting(27)
+29. fix copyOnEnter without menu showing up
+30. showing content in detailViewController
 ## Inspiration
 Initially it is just a simple tool to facilate my job application filling process. When I did job hunting, my mac was slow. Opening too many app(Adobe Reader, MS Word and too much safari chrome tab) significantly slow my mac. Copy paste repeatedly is tedious. So I came to the idea to store frequently copied items in menu bar for quick access. 
