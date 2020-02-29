@@ -8,6 +8,7 @@
 
 import Cocoa
 import CoreSpotlight
+import Carbon
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -43,29 +44,51 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             strongSelf.closePopover(sender: event)
         }
     }
-    lazy var globalBringUpMonitor: GlobalEventMonitor = GlobalEventMonitor(mask: .keyDown){ [weak self]
-        event in
-        if let strongSelf = self {
-            print(strongSelf.globalBringUpMonitor)
-//            strongSelf.viewController.keyDown(with: event!)
-            strongSelf.keyDown(with: event!)
+    func register() {
+          var hotKeyRef: EventHotKeyRef?
+          let modifierFlags: UInt32 = UInt32(shiftKey)
+          let keyCode = kVK_Space
+          var gMyHotKeyID = EventHotKeyID()
+
+          gMyHotKeyID.id = UInt32(keyCode)
+
+          // Not sure what "swat" vs "htk1" do.
+          gMyHotKeyID.signature = OSType("swat".fourCharCodeValue)
+          // gMyHotKeyID.signature = OSType("htk1".fourCharCodeValue)
+
+          var eventType = EventTypeSpec()
+          eventType.eventClass = OSType(kEventClassKeyboard)
+          eventType.eventKind = OSType(kEventHotKeyReleased)
+            
+            let observer = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+          // Install handler.
+          InstallEventHandler(GetApplicationEventTarget(), {
+            (nextHanlder, theEvent, observer) -> OSStatus in
+            // var hkCom = EventHotKeyID()
+            let mySelf = Unmanaged<AppDelegate>.fromOpaque(observer!).takeUnretainedValue()
+            mySelf.togglePopover(mySelf.statusItem.button)
+    //         GetEventParameter(theEvent,
+    //                           EventParamName(kEventParamDirectObject),
+    //                           EventParamType(typeEventHotKeyID),
+    //                           nil,
+    //                           MemoryLayout<EventHotKeyID>.size,
+    //                           nil,
+    //                           &hkCom)
+
+            print("Shift + space Released!")
+            return noErr
+            /// Check that hkCom in indeed your hotkey ID and handle it.
+          }, 1, &eventType, observer, nil)
+
+          // Register hotkey.
+          let status = RegisterEventHotKey(UInt32(keyCode),
+                                           modifierFlags,
+                                           gMyHotKeyID,
+                                           GetApplicationEventTarget(),
+                                           0,
+                                           &hotKeyRef)
+          assert(status == noErr)
         }
-    }
-    func keyDown(with event: NSEvent) {
-        if event.keyCode == 12{
-            print("q detected")
-            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask){
-            case[.control, .shift]:
-                print("control+shift");
-//                if(appDelegate == nil){
-//                    appDelegate = NSApplication.shared.delegate as! AppDelegate
-//                }
-                self.togglePopover(self.statusItem.button)
-            default:
-                break
-            }
-        }
-    }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -109,7 +132,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let defaults = UserDefaults.standard
         let defaultValue = ["maxId" : ""]
         defaults.register(defaults: defaultValue)
-        globalBringUpMonitor.start()
+        register()
         togglePopover(statusItem.button)
     }
 
@@ -302,5 +325,19 @@ extension NSImage {
         newImage.addRepresentation(representation!)
         
         return newImage
+    }
+}
+extension String{
+    public var fourCharCodeValue: Int {
+      var result: Int = 0
+      if let data = self.data(using: String.Encoding.macOSRoman) {
+        data.withUnsafeBytes({ (rawBytes) in
+          let bytes = rawBytes.bindMemory(to: UInt8.self)
+          for i in 0 ..< data.count {
+            result = result << 8 + Int(bytes[i])
+          }
+        })
+      }
+      return result
     }
 }

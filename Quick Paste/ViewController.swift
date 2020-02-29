@@ -299,7 +299,6 @@ extension ViewController {
 
 extension ViewController{
     @IBAction func Quit(_ sender: Any) {
-        appDelegate.globalBringUpMonitor.stop()
         NSApplication.shared.terminate(self)
     }
     @IBAction func clear(_ sender: NSButton) {
