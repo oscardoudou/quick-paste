@@ -10,6 +10,10 @@ import Cocoa
 import CoreSpotlight
 import Carbon
 
+let logger: Logger = {
+    return Logger()
+}()
+
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     
@@ -32,21 +36,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     lazy var localEventMonitor : LocalEventMonitor  = LocalEventMonitor(mask: .keyDown){[weak self]
         event in
         if let strongSelf = self {
-            print(strongSelf.localEventMonitor)
+            logger.log(category: .event, message: "localEvent")
             strongSelf.viewController.keyDown(with: event!)
+            logger.log(category: .event, message: "localEvent")
         }
         return event!
     }
     lazy var globalEventMonitor: GlobalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]){ [weak self]
         event in
         if let strongSelf = self, strongSelf.popover.isShown {
-            print(strongSelf.globalEventMonitor)
+            logger.log(category: .event, message: "globalEvent")
             strongSelf.closePopover(sender: event)
+            logger.log(category: .event, message: "globalEvent")
         }
     }
+    
+    func getCarbonFlagsFromCocoaFlags(cocoaFlags: NSEvent.ModifierFlags) -> UInt32 {
+      let flags = cocoaFlags.rawValue
+      var newFlags: Int = 0
+      if ((flags & NSEvent.ModifierFlags.control.rawValue) > 0) {
+        newFlags |= controlKey
+      }
+      if ((flags & NSEvent.ModifierFlags.command.rawValue) > 0) {
+        newFlags |= cmdKey
+      }
+      if ((flags & NSEvent.ModifierFlags.shift.rawValue) > 0) {
+        newFlags |= shiftKey;
+      }
+      if ((flags & NSEvent.ModifierFlags.option.rawValue) > 0) {
+        newFlags |= optionKey
+      }
+      if ((flags & NSEvent.ModifierFlags.capsLock.rawValue) > 0) {
+        newFlags |= alphaLock
+      }
+      return UInt32(newFlags);
+    }
+    
     func register() {
           var hotKeyRef: EventHotKeyRef?
-          let modifierFlags: UInt32 = UInt32(shiftKey)
+          let modifierFlags: UInt32 = getCarbonFlagsFromCocoaFlags(cocoaFlags: NSEvent.ModifierFlags.init(rawValue: NSEvent.ModifierFlags.shift.rawValue + NSEvent.ModifierFlags.control.rawValue))
           let keyCode = kVK_Space
           var gMyHotKeyID = EventHotKeyID()
 
@@ -75,7 +103,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     //                           nil,
     //                           &hkCom)
 
-            print("Shift + space Released!")
+//            print("Shift + space Released!")
+            logger.log(category: .event, message: "Shift + Control + space Released!")
             return noErr
             /// Check that hkCom in indeed your hotkey ID and handle it.
           }, 1, &eventType, observer, nil)
@@ -93,23 +122,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
 //         buildMenu()
-        print("applicationDidFinishLaunching start")
-        print("\(splitViewController.splitViewItems)")
-        viewController = splitViewController.viewItem.viewController as! ViewController
-        dataController = DataController()
-        print("appdelegate datacontroller:\(dataController)")
         if let button = statusItem.button {
           button.image = NSImage(named:"paste")
           button.action = #selector(togglePopover)
         }
+        logger.log(category: .app, message: "Appdelegate property has been initialized. SplitViewItems:\(splitViewController.splitViewItems)")
+        viewController = splitViewController.viewItem.viewController as? ViewController
+        logger.log(category: .app, message: "initializing app's datacontroller")
+        dataController = DataController()
+        logger.log(category: .app, message: "App's datacontroller: \(String(describing: dataController)) has been initialized")
         //grab the view controller and pass a Persistent Container Reference to a View Controller
-//        if let viewController =  ViewController.freshController() as? ViewController{
-//            viewController.container = dataController.persistentContainer
-            viewController.dataController = self.dataController
-        print("datacontroller of viewcontroller: \(viewController.dataController)")
-        //popover's contentViewController is not original ViewController any more, is splitViewController
+        viewController.dataController = self.dataController
+        logger.log(category: .app, message: "ViewController's datacontroller is setting to \(String(describing: viewController.dataController))")
+        //bind popover's contentViewController to splitViewController
         popover.contentViewController = splitViewController
-//        }
         //url scheme
         NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(self.handleAppleEvent(event:replyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
         //add pasteboard observer/listener to notification center, center will post onPasteboardChanged when be notified
@@ -146,12 +172,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func showPopover(sender: Any?) {
       if let button = statusItem.button {
-        print("inside showPopover")
-        print("to bring popover start loading popover contentviecontroller's view and its children views ")
+        logger.log(category: .app, message: "-------- initializing popover --------")
+        logger.log(category: .app, message: "preparing popover contentviecontroller's view and its children views")
         //before actually execute popover.show, first need to make sure popover.contentViewController's view didLoad, which also involve child view's didLoad
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
       }
-        print("after popover.show")
+        logger.log(category: .app, message: "-------- popover is ready --------")
         localEventMonitor.start()
         globalEventMonitor.start()
     }
@@ -178,12 +204,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let items = pb.pasteboardItems else { return }
         //only copy screenshot text and file, fix unsupport copy type unwrap nil crash
         if let preferType = items.first?.availableType(from: preferTypes){
-            let currentDateTime = Date()
-                   let dateFormatter = DateFormatter()
-                   dateFormatter.timeStyle = .medium
-                   let copyTimeStamp = "\(dateFormatter.string(from: currentDateTime))"
-                   //for now we only log copy event, could be searchable, before introducing duplicate will leave this as unsearchable
-                   print("\(copyTimeStamp) | '\(preferType)'")
+                   logger.log(category: .app, message: "NSPasteBoardDidChange with incoming record type of '\(preferType)'")
                    //index copy event
                    bindIt()
         }else{
@@ -194,11 +215,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     //status bar menu
     @objc func bindIt(){
+        logger.log(category: .app, message: "-------- start binding --------")
         printPasteBoard()
-        print("---------bindIt--------------")
         let items = NSPasteboard.general.pasteboardItems!
         if items.count == 0{
-            print("items is: \(items)")
             return
         }
         if(firstTime){
@@ -211,18 +231,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             //retrieve id from UserDefault which persistent after relaunch, avoid fetch multiple object associated with same id
             let defaults = UserDefaults.standard
             let id = defaults.string(forKey: "maxId") == "" ? 0 : Int(defaults.string(forKey: "maxId")!)!
-            print("id in appdelegate bindIt(): \(id)")
+            logger.log(category: .app, message: "try binding to id: \(id)")
             let preferType = item.availableType(from: preferTypes)!
             var isMobile = false
             if let mobileType = item.availableType(from: mobileTypes){
                 isMobile = true
             }
-            print("Prefer type is: \(preferType)")
-            print("isMobile: \(isMobile)")
+            logger.log(category: .app, message: "Prefer type is: \(preferType)")
+            logger.log(category: .app, message: "isMobile: \(isMobile)")
             if preferType.rawValue == "public.utf8-plain-text"{
                 title = item.string(forType: preferType) ?? "NoText"
                 //NSPasteboard.general.clearContents()
-                print("plaintext is: \(title)")
+                logger.log(category: .app, message: "plaintext is: \(title)")
                 dataController.createCopied(id: id, title: title, type: preferType.rawValue, timestamp:Date(), device: isMobile == true ? "mobile" : "mac" )
             }
             else if preferType.rawValue == "public.file-url"{
@@ -230,7 +250,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 data = item.data(forType: NSPasteboard.PasteboardType.init("com.apple.icns")) ?? Data()
                 title = item.string(forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text")) ?? "NoFileName"
                 //NSPasteboard.general.clearContents()
-                print("path is: \(path)")
+                logger.log(category: .app, message: "path is: \(path)")
                 dataController.createCopied(id: id, title: title, path: path, type: preferType.rawValue, data: data, timestamp:Date(), device: isMobile == true ? "mobile" : "mac")
             }
             else if preferType.rawValue == "public.png"{
@@ -244,23 +264,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             else{
 //                TODO
-                print(preferType.rawValue)
+                logger.log(category: .app, message: "Prefer type is: \(preferType)")
             }
         }
+        logger.log(category: .app, message: "-------- binding finished --------")
     }
     
     
     @objc func printPasteBoard(){
+        logger.log(category: .app, message: "-------- checking current pasteboard --------")
         //it is possible no copy at all, so it need to be optional
-        print("---------inside printPasteBoard---------")
         if let items = NSPasteboard.general.pasteboardItems{
             for item in items{
                 for type in item.types{
-                    print("Type: \(type)")
-                    print("String: \(item.string(forType: type))")
+                    logger.log(category: .app, message: "Type: \(type)")
+                    logger.log(category: .app, message: "String: \(String(describing: item.string(forType: type)))")
                 }
             }
         }
+        logger.log(category: .app, message: "-------- checking finished --------")
     }
     
     //url scheme event handler
@@ -274,12 +296,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     }
                     let defaults = UserDefaults.standard
                     let id = defaults.string(forKey: "maxId") == "" ? 0 : Int(defaults.string(forKey: "maxId")!)!
-                    print("id in appdelegate handleAppleEvent: \(id)")
+                    logger.log(category: .app, message: "id in appdelegate handleAppleEvent: \(id)")
                     let start = text.index(indexOfSemiColon, offsetBy: 3)
                     let end = text.endIndex
                     let paramFromCommandLine = String(text[start..<end])
                     //NSPasteboard.general.clearContents()
-                    print("url scheme message is: \(paramFromCommandLine)")
+                    logger.log(category: .app, message: "url scheme message is: \(paramFromCommandLine)")
                     dataController.createCopied(id: id, title: paramFromCommandLine, type: "public.utf8-plain-text", timestamp:Date())
                 }
             }
@@ -325,19 +347,5 @@ extension NSImage {
         newImage.addRepresentation(representation!)
         
         return newImage
-    }
-}
-extension String{
-    public var fourCharCodeValue: Int {
-      var result: Int = 0
-      if let data = self.data(using: String.Encoding.macOSRoman) {
-        data.withUnsafeBytes({ (rawBytes) in
-          let bytes = rawBytes.bindMemory(to: UInt8.self)
-          for i in 0 ..< data.count {
-            result = result << 8 + Int(bytes[i])
-          }
-        })
-      }
-      return result
     }
 }

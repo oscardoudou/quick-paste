@@ -17,11 +17,11 @@ class DetailViewController: NSViewController {
     private var textView:NSTextView!
     
     override func viewDidLoad() {
-        print("inside viewDidLoad of DetailViewController:\(self)")
+        logger.log(category: .ui, message: "inside viewDidLoad of DetailViewController:\(self)")
         super.viewDidLoad()
-        print("super is \(super.className)")
-        print("after DetailViewController super.viewDidLoad")
-        print("children are \(self.children)")
+        logger.log(category: .ui, message: "super is \(super.className)")
+        logger.log(category: .ui, message: "after DetailViewController super.viewDidLoad")
+        logger.log(category: .ui, message: "children are \(self.children)")
 //         Do view setup here.
         imageView = NSImageView()
         textView = NSTextView()
@@ -47,9 +47,9 @@ class DetailViewController: NSViewController {
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        print("view:\(view.subviews)")
-        var testScrollView: NSScrollView = view.subviews[0] as! NSScrollView
-        print("testScrollView.documentView: \(testScrollView.documentView)")
+        logger.log(category: .ui, message: "view:\(view.subviews)")
+        let testScrollView: NSScrollView = view.subviews[0] as! NSScrollView
+        logger.log(category: .ui, message: "testScrollView.documentView: \(String(describing: testScrollView.documentView))")
     }
 //    static func freshController() -> DetailViewController {
 //      //1.
@@ -66,8 +66,8 @@ class DetailViewController: NSViewController {
 //    }
     
     func getCopiedFromLeft(){
-        print("inside getCopiedFromLeft():")
-        print("copied: \(copied)")
+        logger.log(category: .app, message: "inside getCopiedFromLeft():")
+        logger.log(category: .app, message: "copied: \(String(describing: copied))")
     }
     
     func showImageDetail(){

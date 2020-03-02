@@ -26,6 +26,7 @@ class NSFRCChangeConsolidator: NSObject {
            case .update:
                self.rowUpdates.append(newIndexPath!)
            @unknown default:
+            logger.log(category: .app, message: "Unknown change type")
                fatalError("Unknown change type")
            }
        }

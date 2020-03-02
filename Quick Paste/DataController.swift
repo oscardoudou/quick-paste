@@ -34,6 +34,7 @@ public class DataController: NSObject{
                  * The store could not be migrated to the current model version.
                  Check the error message to determine what the actual problem was.
                  */
+                logger.log(category: .data, message: "Unresolved error \(error)")
                 fatalError("Unresolved error \(error)")
             }
         })
@@ -47,7 +48,7 @@ public class DataController: NSObject{
     func saveContext () {
         let context = persistentContainer.viewContext
         if !context.commitEditing() {
-            NSLog("\(NSStringFromClass(type(of: self))) unable to commit editing before saving")
+            logger.log(category: .data, message: "\(NSStringFromClass(type(of: self))) unable to commit editing before saving")
         }
         if context.hasChanges {
             do {
@@ -70,27 +71,26 @@ public class DataController: NSObject{
         copied.timestamp = timestamp
         copied.type = type
         copied.device = device
-        print ("copied object \(copied.id) is set")
-        //print("data == nil ? \(data == nil)")
+        logger.log(category: .data, message: "copied object \(copied.id) is set")
         do{
             try context.save()
-            print ("✅  Copied saved successfully")
+            logger.log(category: .data, message: "✅  Copied saved successfully")
             let defaults = UserDefaults.standard
             defaults.set(String(id+1), forKey: "maxId")            
         }catch let error{
-            print(" ❌ Failed to create Copied \(error.localizedDescription) ")
+            logger.log(category: .data, message: "❌ Failed to create Copied \(error.localizedDescription) ", type: .error)
         }
     }
     public func removeCopied(item: Copied){
         do{
             context.delete(item)
-            print ("✅  Copied \(item.id) removed successfully")
+            logger.log(category: .data, message: "✅  Copied \(item.id) removed successfully")
         }catch let error{
-            print(" ❌ Failed to remove Copied \(error.localizedDescription) ")
+            logger.log(category: .data, message: "❌ Failed to remove Copied \(error.localizedDescription) ")
         }
     }
     public func deleteAll(){
-        print("--------inside deleteAll--------")
+        logger.log(category: .app, message: "-------- begin delete All --------")
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Copied")
         fetchRequest.predicate = NSPredicate(format: "id>%lld", Int64(-1))
         let batchRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
@@ -113,13 +113,14 @@ public class DataController: NSObject{
                         NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [self.context])
                         try self.context.save()
                     }catch let error{
-                        print(" ❌ Failed to merge changes or context on main queue fail to save: \(error)")
+                        logger.log(category: .data, message: "❌ Failed to merge changes or context on main queue fail to save: \(error)")
                     }
                 }
             }catch let error{
-                print(" ❌ Failed to batch delete or private queue fail to save: \(error)")
+                logger.log(category: .data, message: "❌ Failed to batch delete or private queue fail to save: \(error)")
             }
         }
+        logger.log(category: .app, message: "-------- finish delete All --------")
     }
     
     public func fetch(id: Int)->Copied?{
@@ -136,12 +137,12 @@ public class DataController: NSObject{
             }
             print("\(copieds[0].id)")
             print("\(copieds[0].name ?? "NAME")")
-            print("\(copieds[0].path)")
+            print("\(copieds[0].path ?? "PATH")")
             print("\(copieds[0].timestamp ?? Date.init(timeIntervalSince1970: 1))")
             print("\(copieds[0].type ?? "TYPE" ) ")
             res = copieds[0]
         }catch let error{
-            print(" ❌ Failed to fetch Copied: \(error)")
+            logger.log(category: .data, message: "❌ Failed to fetch Copied: \(error)")
         }
         return res
     }
