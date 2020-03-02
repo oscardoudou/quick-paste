@@ -18,11 +18,11 @@ class CopiedTableViewDelegate: NSObject, NSTableViewDelegate {
     var tableView: NSTableView!
     var detailViewController: DetailViewController!
     func tableViewSelectionDidChange(_ notification: Notification) {
-        print("inside tableViewSelectionDidChange")
-        print("tableView.selectedRow: \(tableView.selectedRow)")
-        print("detailViewController: \(detailViewController)")
+        logger.log(category: .app, message: "inside tableViewSelectionDidChange")
+        logger.log(category: .ui, message: "tableView.selectedRow: \(tableView.selectedRow)")
+        logger.log(category: .app , message: "detailViewController: \(String(describing: detailViewController))")
         detailViewController.getCopiedFromLeft()
-        print("before passing data to detailViewController")
+        logger.log(category: .app, message: "before passing data to detailViewController")
         if(tableView.selectedRow == -1){return}
         if let copied = fetchedResultsController.fetchedObjects![tableView.selectedRow] as? Copied{
             detailViewController.copied = copied

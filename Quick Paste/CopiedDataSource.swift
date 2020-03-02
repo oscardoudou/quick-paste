@@ -13,7 +13,7 @@ class CopiedDataSource: NSObject, NSTableViewDataSource {
     // 1/2 have to implement function to show core data in table view
     func numberOfRows(in tableView: NSTableView) -> Int {
         let count = fetchedResultsController.fetchedObjects?.count
-        print("Number of Rows: \(count)")
+        logger.log(category: .data, message: "Number of Rows: \(String(describing: count))")
         return count ?? 0
     }
 }

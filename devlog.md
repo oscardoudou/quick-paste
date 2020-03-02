@@ -12,6 +12,7 @@
 8. shortcut launch 
 9. copy when return on focus item
 10. clear all
+11. detail view of text and screenshot
 
 ## To Do
 - [x] key binding, menu seperator 
@@ -26,6 +27,8 @@
 - [x] support in-app naive search 
 - [x] entry on select could be copied(reuse copyIt)
 - [x] retrieve object based on tableview.index, especially when after apply search(filtered history row index has nothing to do with id, temp copied array)
+- [ ] move clear and quit to menubar
+- [ ] show six record
 - [ ] align image in middle
 - [ ] resize menu to show at least six items
 - [ ] fix file display
@@ -44,6 +47,7 @@
 - [x] copy it should not add new record, avoid this type of changeCount being trigger (set lastChangeCount same to changeCount)
 - [x] right after insert new history record click the history, not the same history record when paste it.(after each update, the tableview should be consistent with copieds)
 - [x] if text copied, even default image is set to so icon, but the image won't showup until certain type of searching being performed or relaunch(a real old bug)
+- [x] funk sound when hit global shortcut 
 ## Dev history
 1. The initial purpose resume parsing, menu would look good only in this [resume](https://www.dropbox.com/s/8r6wm7d8t45pmsc/2019_Resume_Yichi_Zhang.pdf?dl=0) format. 
 2. Key equavilant support from 1 to 9
@@ -75,5 +79,7 @@
 28. fix deletion crash after connecting(27)
 29. fix copyOnEnter without menu showing up
 30. showing content in detailViewController
-## Inspiration
-Initially it is just a simple tool to facilate my job application filling process. When I did job hunting, my mac was slow. Opening too many app(Adobe Reader, MS Word and too much safari chrome tab) significantly slow my mac. Copy paste repeatedly is tedious. So I came to the idea to store frequently copied items in menu bar for quick access. 
+31. mute funk sound
+## Inspiration (Why yet another pasteboard manager)
+Copy paste repeatedly is tedious. It's even less interesting when you forget what you copy. 
+Paid pasteboard manager app provide really complicated use scenario, which I barely used. Among all the open source alternatives, none of them support screenshot, which heavily involved in my daily documentation and note-taking. 

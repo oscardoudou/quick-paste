@@ -22,7 +22,7 @@ class ViewController: NSViewController {
     var fetchPredicate : NSPredicate? {
         didSet {
             fetchedResultsController.fetchRequest.predicate = fetchPredicate
-            print("FetchResultsController.fecthRequest.predicate changed from \(oldValue) to \(fetchPredicate)")
+            logger.log(category: .data, message: "FetchResultsController.fecthRequest.predicate changed from \(String(describing: oldValue)) to \(String(describing: fetchPredicate))")
         }
     }
     var appDelegate : AppDelegate!
@@ -46,28 +46,29 @@ class ViewController: NSViewController {
     }()
     override func viewDidAppear() {
         super.viewDidAppear()
-        print("in viewDidAppear")
+        logger.log(category: .ui, message: "after super viewDidAppear")
         //after using CustomView searchfield is not auto focused anymore
         if(tableView.selectedRow == -1){
             searchField.window?.makeFirstResponder(searchField)
         }
     }
     override func viewDidLoad() {
-        print("inside viewDidLoad of ViewController:\(self)")
         super.viewDidLoad()
-        print("after ViewController super.viewDidLoad")
-        print("children are \(self.children)")
+        logger.log(category: .ui, message: "after ViewController super.viewDidLoad")
+        logger.log(category: .ui, message: "children are \(self.children)")
         appDelegate = NSApplication.shared.delegate as! AppDelegate
         //make sure datacontroller reference of viewController is consistent with one initially created in appDelegate
-        print("datacontroller field in viewcontroller: \(dataController)")
-        print("appDelegate.dataController: \(appDelegate.dataController)")
+        logger.log(category: .ui, message: "datacontroller of viewcontroller: \(String(describing: dataController))")
+        logger.log(category: .ui, message: "dataController of appDelegate: \(String(describing: appDelegate.dataController))")
         guard dataController.persistentContainer != nil else{
+            logger.log(category: .ui, message: "This view need a persistent container", type: .error)
             fatalError("This view need a persistent container")
         }
         // Do any additional setup after loading the view.
         do{
             try fetchedResultsController.performFetch()
         }catch{
+            logger.log(category: .ui, message: "Failed to fecth entites: \(error)", type: .error)
             fatalError("Failed to fecth entites: \(error)")
         }
         copieds = fetchedResultsController.fetchedObjects
@@ -81,12 +82,12 @@ class ViewController: NSViewController {
         tableViewDelegate.detailViewController = detailViewController
         //here detailViewController will be nil, cause viewController's detailViewController hasn't been initialize due to splitViewController viewDidLoad hasn't finished yet. At this point, all lines after super.viewDidLoad hasn't executed yet as children view hasn't loaded yet(corresponding viewcontroller hasn't instantiated either)
         //this print just give a sense that what correct initialize sequence is
-        print("tableViewDelegate.detailViewController: \(detailViewController)")
+        logger.log(category: .ui, message: "tableViewDelegate.detailViewController: \(String(describing: detailViewController))")
         tableView.dataSource = dataSource
         tableView.delegate = tableViewDelegate
         searchField.delegate = self
         tableView.action = #selector(copyOnSelect)
-        print("AXIsProcessTrusted(): \(AXIsProcessTrusted())")
+        logger.log(category: .ui, message: "AXIsProcessTrusted(): \(AXIsProcessTrusted())")
        
     }
 
@@ -97,25 +98,24 @@ class ViewController: NSViewController {
     }
     //table view copy on select
     @objc func copyOnSelect(sender: NSTableView){
-        print("---------copyOnSelect--------------")
+        logger.log(category: .event, message: "------- copyOnSelect --------")
         guard tableView.selectedRow >= 0,
             let item: Copied = copieds![tableView.selectedRow] else {
             return
         }
-        print("rowView\(tableView.rowView(atRow: tableView.selectedRow, makeIfNecessary: false))")
         let cellView = tableView.view(atColumn: 1, row: tableView.selectedRow, makeIfNecessary: false)
-        print ("cellView\(cellView?.subviews[0])")
+        logger.log(category: .data, message: "cellView\(String(describing: cellView?.subviews[0]))")
         let imageView = cellView?.subviews[0] as! NSImageView
-        print("imageView hide status: \(imageView.isHidden)")
+        logger.log(category: .data, message: "imageView hide status: \(imageView.isHidden)")
         let textField = cellView?.subviews[1] as! NSTextField
-        print ("stringValue: \(textField.stringValue)")
-        print("thumbnail == nil ? : \(item.thumbnail == nil)")
+        logger.log(category: .data, message: "stringValue: \(textField.stringValue)")
+        logger.log(category: .data, message: "thumbnail == nil ? : \(item.thumbnail == nil)")
         copyIt(item: item)
     }
     //table view copy on shortcut
     @objc func copyOnNumber(numberKey: Int){
-        print("---------copyOnNumber--------------")
-        print("available copied count in current view: \(copieds!.count)")
+        logger.log(category: .event, message: "-------- copyOnNumber --------")
+        logger.log(category: .data, message: "available copied count in current view: \(copieds!.count)")
         guard numberKey <= copieds!.count,
             let item: Copied = copieds![numberKey-1] else {
             return
@@ -123,8 +123,8 @@ class ViewController: NSViewController {
         copyIt(item: item)
     }
     private func copyOnReturn(currentRow: Int){
-        print("---------CopyOnReturn---------------")
-        print("available copied count in current view: \(copieds!.count)")
+        logger.log(category: .event, message: "--------copyOnReturn --------")
+        logger.log(category: .data, message: "available copied count in current view: \(copieds!.count)")
         guard currentRow <= copieds!.count,
             let item: Copied = copieds![currentRow] else {
             return
@@ -137,7 +137,7 @@ class ViewController: NSViewController {
         NSPasteboard.general.clearContents()
         //avoid post to notification center post to .NSPasteBoardDidChange, since clearContents would increment pasteboard changeCount
         appDelegate.lastChangeCount = NSPasteboard.general.changeCount
-        print ("Copied \(item.id): \(item.type)")
+        logger.log(category: .ui, message: "Copied \(item.id): \(String(describing: item.type))")
         if(item.type == "public.png"){
             NSPasteboard.general.setData(item.thumbnail!, forType: NSPasteboard.PasteboardType.init("public.png"))
         }else{
@@ -147,12 +147,12 @@ class ViewController: NSViewController {
                 NSPasteboard.general.setString(name, forType: NSPasteboard.PasteboardType.init("public.utf8-plain-text"))
             }
         }
-        print("we copy entry content to pasteboard")
+        logger.log(category: .ui, message: "we copy entry content to pasteboard")
         appDelegate.printPasteBoard()
     }
     //base delete
     private func deleteIt(){
-        print("---------deleteIt------------")
+        logger.log(category: .ui, message: "------- deleteIt --------")
         let item: Copied = copieds![tableView.selectedRow]
         dataController.removeCopied(item: item)
     }
@@ -160,10 +160,11 @@ class ViewController: NSViewController {
     override func keyDown(with event: NSEvent) {
         //avoid crash caused by cmd+backspace
         if(event.keyCode>=18 && event.keyCode<=23){
+            logger.log(category: .event, message: "detect numeric key 1~6")
             switch event.modifierFlags.intersection(.deviceIndependentFlagsMask) {
             //not using event.keycode is because keyCode of key 5 key 6 is reverse sequence
             case [.command] where Int(event.characters!)! <= 6 && Int(event.characters!)! >= 1 :
-                print("command+\(event.characters!)")
+                logger.log(category: .ui, message: "we copy entry content to pasteboard")
                 copyOnNumber(numberKey: Int(event.characters!)!)
             //other modifier keys
             default:
@@ -171,7 +172,7 @@ class ViewController: NSViewController {
             }
         }
         if event.keyCode == 51{
-            print("detected deletetable. View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
+            logger.log(category: .event, message: "detected deletetable. View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
             var popOverWindow: NSWindow?
             NSApplication.shared.windows.forEach{window in
 //                print(window.className)
@@ -182,10 +183,10 @@ class ViewController: NSViewController {
             }
             if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true && popOverWindow!.isKeyWindow {
                 //focus change to searchfield only if no entry left
-                print("deleting row: \(tableView.selectedRow)")
+                logger.log(category: .ui, message: "deleting row: \(tableView.selectedRow)")
                 //if deleting row is last row, focus on prev index instead of sticking to same index of deleting row
                 let rowToBeFocused = tableView.selectedRow == copieds!.count-1 ? tableView.selectedRow-1: tableView.selectedRow
-                print("rowToBeFocused: \(rowToBeFocused)")
+                logger.log(category: .ui, message: "rowToBeFocused: \(rowToBeFocused)")
                 //even if you selectRowIndexes here, it won't work at this point even put it after deleteIt(core data processing is done), since tableview UI hasn't start yet.
                 rowToBeFocusedIndex = NSIndexSet(index: rowToBeFocused)
                 let changeFocusToSearchBar = copieds!.count == 1 ? true : false
@@ -204,20 +205,19 @@ class ViewController: NSViewController {
             }
         }
         if event.keyCode == 125{
-            print("detected arrow down")
-            print("tableView.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
-//            print("NSApplication.shared.windows:\(NSApplication.shared.windows)")
+            logger.log(category: .event, message: "detected arrow down")
+            logger.log(category: .ui, message: "tableView.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
             var popOverWindow: NSWindow?
             NSApplication.shared.windows.forEach{window in
-//                print(window.className)
                 if(window.className.contains("Popover")){
-                    popOverWindow = window; print(popOverWindow)
+                    popOverWindow = window;
+                    logger.log(category: .ui, message: "\(String(describing: popOverWindow))")
                 }
             }
             //when focus on searchbar, arrow down would bring focus to tableview and highlight first row
             if popOverWindow!.firstResponder?.isKind(of: NSTextView.self) == true{
                 //tackle click back to search bar, remaining rows selected
-                print("tableView.selectedRowIndexes.count\(tableView.selectedRowIndexes.count)")
+                logger.log(category: .ui, message: "tableView.selectedRowIndexes.count\(tableView.selectedRowIndexes.count)")
                 //only right after launch directly go to table will not go inside this condition
                 if tableView.selectedRowIndexes.count > 0{
                     tableView.deselectAll(tableView.selectedRowIndexes)
@@ -229,17 +229,17 @@ class ViewController: NSViewController {
             }
         }
         if event.keyCode == 126{
-            print("detected arrow up")
-            print("tableView.selectedRow:\(tableView.selectedRow), event.timestamp: \(event.timestamp)")
+            logger.log(category: .event, message: "detected arrow up")
+            logger.log(category: .ui, message: "tableView.selectedRow:\(tableView.selectedRow), event.timestamp: \(event.timestamp)")
             var popOverWindow: NSWindow?
             NSApplication.shared.windows.forEach{window in
-                print(window.className)
+                logger.log(category: .ui, message: "window.className")
                 if(window.className.contains("Popover")){
                     popOverWindow = window; print(popOverWindow)
                 }
             }
             if popOverWindow!.firstResponder?.isKind(of: NSTableView.self) == true{
-                print("copieds!.count\(copieds!.count)")
+                logger.log(category: .data, message: "copieds!.count\(copieds!.count)")
                 if tableView.selectedRow == 0{
                     popOverWindow!.makeFirstResponder(searchField)
                     //remove this line if you want text being selected
@@ -249,34 +249,21 @@ class ViewController: NSViewController {
             }
         }
         if event.keyCode == 36{
-            print("return key detected，View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
+            logger.log(category: .event, message: "return key detected，View.selectedRow:\(tableView.selectedRow),  event.timestamp: \(event.timestamp)")
             var popOverWindow: NSWindow?
             NSApplication.shared.windows.forEach{window in
                 print(window.className)
                 if(window.className.contains("Popover")){
-                    popOverWindow = window; print(popOverWindow)
+                    popOverWindow = window;
+                    logger.log(category: .ui, message: "popOverWindow: \(String(describing: popOverWindow))")
                 }
             }
             if popOverWindow?.firstResponder?.isKind(of: NSTableView.self) == true{
-                print("current selected row:\(tableView.selectedRow)")
+                logger.log(category: .ui, message: "current selected row:\(tableView.selectedRow)")
                 copyOnReturn(currentRow: tableView.selectedRow)
             }
         }
-        //global shortcut
-        //ctrl+shift+q popup the quick paste window
-        if event.keyCode == 12{
-            print("q detected")
-            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask){
-            case[.control, .shift]:
-                print("control+shift");
-                if(appDelegate == nil){
-                    appDelegate = NSApplication.shared.delegate as! AppDelegate
-                }
-                appDelegate.togglePopover(appDelegate.statusItem.button)
-            default:
-                break
-            }
-        }
+
     }
 }
 
@@ -299,11 +286,10 @@ extension ViewController {
 
 extension ViewController{
     @IBAction func Quit(_ sender: Any) {
-        appDelegate.globalBringUpMonitor.stop()
         NSApplication.shared.terminate(self)
     }
     @IBAction func clear(_ sender: NSButton) {
-        print("trigger clear button")
+        logger.log(category: .event, message: "trigger clear button")
         dataController.deleteAll()
 //        tableView.reloadData()
     }
@@ -328,11 +314,12 @@ extension ViewController: NSSearchFieldDelegate{
             //fetchedResultsController.fetchRequest.predicate = predicate
         do{
             try fetchedResultsController.performFetch()
-            print ("Fetched \(fetchedResultsController.fetchedObjects?.count) objects")
+            logger.log(category: .data, message: "Fetched \(String(describing: fetchedResultsController.fetchedObjects?.count)) objects")
             copieds = fetchedResultsController.fetchedObjects
             //when you search, you dont actually add any new object, instead you change the fetchedResultsController's predicate, since this repointing, the context doesn't observer any changes. you need reload to refresh the view manually
             tableView.reloadData()
         } catch let error{
+            logger.log(category: .app, message: "Failed to request Data, \(error.localizedDescription)", type: .error)
             fatalError("Failed to request Data, \(error.localizedDescription) ")
         }
     }
@@ -341,8 +328,8 @@ extension ViewController: NSSearchFieldDelegate{
 //this extension is important, but don't know the difference from class ViewController: NSViewController, NSFetchedResultsControllerDelegate
 extension ViewController: NSFetchedResultsControllerDelegate {
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        print("tableViewBeginUpdates")
-        print("tableView select row before tableview UI update: \(tableView.selectedRow)")
+        logger.log(category: .ui, message: "--------  tableViewBeginUpdates -------- ")
+        logger.log(category: .ui, message: "tableView select row before tableview UI update: \(tableView.selectedRow)")
         consolidator = NSFRCChangeConsolidator()
         tableView.beginUpdates()
     }
@@ -352,13 +339,13 @@ extension ViewController: NSFetchedResultsControllerDelegate {
                 for indexPath in rowDeletes{
                     tableView.removeRows(at: [indexPath.item], withAnimation: .effectFade)
                 }
-                print("tableView select row before manual set: \(tableView.selectedRow)")
-                print("rowToBeFocusedIndex: \(rowToBeFocusedIndex)")
+                logger.log(category: .ui, message: "tableView select row before manual set: \(tableView.selectedRow)")
+                logger.log(category: .ui, message: "rowToBeFocusedIndex: \(String(describing: rowToBeFocusedIndex))")
                 //if rowToBeFocus is -1, rowToBeFocusIndex would be nil, that would lead to stmt below unwrap nil(crash)
                 if rowToBeFocusedIndex != nil{
                    tableView.selectRowIndexes(rowToBeFocusedIndex as IndexSet, byExtendingSelection: false)
                 }
-                print("tableView select row after manual set: \(tableView.selectedRow)")
+                logger.log(category: .ui, message: "tableView select row after manual set: \(tableView.selectedRow)")
             }
         }
         if let rowInserts = consolidator?.sortedRowInserts(){
@@ -371,12 +358,12 @@ extension ViewController: NSFetchedResultsControllerDelegate {
         tableView.endUpdates()
         //deallocate consolidator
         consolidator = nil
-        print("tableViewEndUpdates")
+        logger.log(category: .ui, message: "-------- tableViewEndUpdates --------")
     }
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,didChange anObject: Any, at indexPath: IndexPath?,for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?){
         consolidator?.ingestItemChange(ofType: type, oldIndexPath: indexPath, newIndexPath: newIndexPath)
-        print("tableView.selectedRow:\(tableView.selectedRow)")
-        print("Change type \(type) for indexPath \(String(describing: indexPath)), newIndexPath \(String(describing: newIndexPath)). Changed object: \(anObject). FRC by this moment has \(String(describing: self.fetchedResultsController.fetchedObjects?.count)) objects, tableView has \(self.tableView.numberOfRows) rows")
+        logger.log(category: .ui, message: "tableView.selectedRow:\(tableView.selectedRow)")
+        logger.log(category: .ui, message: "Change type \(type) for indexPath \(String(describing: indexPath)), newIndexPath \(String(describing: newIndexPath)). Changed object: \(anObject). FRC by this moment has \(String(describing: self.fetchedResultsController.fetchedObjects?.count)) objects, tableView has \(self.tableView.numberOfRows) rows")
         switch type {
         case .insert:
             if let newIndexPath = newIndexPath {

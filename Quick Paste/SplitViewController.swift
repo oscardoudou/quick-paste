@@ -12,11 +12,11 @@ class SplitViewController: NSSplitViewController {
     @IBOutlet weak var viewItem: NSSplitViewItem!
     @IBOutlet weak var detailViewItem: NSSplitViewItem!
     override func viewDidLoad() {
-        print("inside viewDidLoad of SplitViewController:\(self)")
+        logger.log(category: .ui, message: "inside viewDidLoad of SplitViewController:\(self)")
         super.viewDidLoad()
-        print("super is \(super.className)")
-        print("after SplitViewController super.viewDidLoad")
-        print("children are \(self.children)")
+        logger.log(category: .ui, message: "super is \(super.className)")
+        logger.log(category: .ui, message: "after SplitViewController super.viewDidLoad")
+        logger.log(category: .ui, message: "children are \(self.children)")
         // Do view setup here.
         if let viewController = viewItem.viewController as? ViewController{
             if let detailViewController = detailViewItem.viewController as? DetailViewController {
@@ -24,7 +24,7 @@ class SplitViewController: NSSplitViewController {
                 detailViewController.viewController = viewController
                 //instead of create direct reference to tableViewDelegate, indirectly use viewController's property as tableViewDelegate is instantiated in viewController
                 viewController.tableViewDelegate.detailViewController = detailViewController
-                print("viewController.tableViewDelegate.detailViewController: \(viewController.tableViewDelegate.detailViewController)")
+                logger.log(category: .app, message: "viewController.tableViewDelegate.detailViewController: \(String(describing: viewController.tableViewDelegate.detailViewController))")
             }
         }
     }
@@ -34,15 +34,17 @@ extension NSSplitViewController {
   // MARK: Storyboard instantiation
   static func freshController() -> SplitViewController {
     //1.
+    logger.log(category: .app, message: "instantiating Main storyboard")
     let storyboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
-     print("inside splitviewcontroller freshcontroller")
     //2.
+    logger.log(category: .app, message: "instantiating SplitViewController")
     let identifier = NSStoryboard.SceneIdentifier("SplitViewController")
     //3.
     guard let splitViewController = storyboard.instantiateController(withIdentifier: identifier) as? SplitViewController else {
+        logger.log(category: .app, message: "Why cant i find SplitViewController? - Check Main.storyboard", type: .error)
       fatalError("Why cant i find SplitViewController? - Check Main.storyboard")
     }
-    print("splitViewController:\(splitViewController)")
+    logger.log(category: .app, message: "\(splitViewController) is instantiated")
     return splitViewController
   }
 }
