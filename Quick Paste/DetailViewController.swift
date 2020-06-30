@@ -74,9 +74,11 @@ class DetailViewController: NSViewController {
         if(copied != nil){
             var imageRect: NSRect
             imageView.image = NSImage(data: copied.thumbnail!)
-            imageRect = NSMakeRect(0.0, 0.0, imageView.image!.size.width, imageView.image!.size.height)
+            //imageView's FrameSize should be it superView size, then scale could work
+            imageRect = NSMakeRect(0.0, 0.0, scrollView.frame.size.width, scrollView.frame.size.height)
             imageView.setFrameSize(CGSize(width: imageRect.width, height: imageRect.height))
-            imageView.imageScaling = NSImageScaling.scaleNone
+            imageView.imageScaling = NSImageScaling.scaleProportionallyDown
+            scrollView.allowsMagnification = true
             scrollView.documentView = imageView
         }
     }

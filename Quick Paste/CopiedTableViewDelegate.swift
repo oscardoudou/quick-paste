@@ -18,6 +18,8 @@ class CopiedTableViewDelegate: NSObject, NSTableViewDelegate {
     var tableView: NSTableView!
     var detailViewController: DetailViewController!
     func tableViewSelectionDidChange(_ notification: Notification) {
+        let scrollView: NSScrollView = detailViewController.view.subviews[0] as! NSScrollView
+        scrollView.magnification = 1.0
         logger.log(category: .app, message: "inside tableViewSelectionDidChange")
         logger.log(category: .ui, message: "tableView.selectedRow: \(tableView.selectedRow)")
         logger.log(category: .app , message: "detailViewController: \(String(describing: detailViewController))")
