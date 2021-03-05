@@ -99,10 +99,14 @@ class ViewController: NSViewController {
     //table view copy on select
     @objc func copyOnSelect(sender: NSTableView){
         logger.log(category: .event, message: "------- copyOnSelect --------")
-        guard tableView.selectedRow >= 0,
-            let item: Copied = copieds![tableView.selectedRow] else {
+//        guard tableView.selectedRow >= 0,
+        if tableView.selectedRow < 0 {
             return
         }
+            let item: Copied = copieds![tableView.selectedRow]
+//        else {
+//            return
+//        }
         let cellView = tableView.view(atColumn: 1, row: tableView.selectedRow, makeIfNecessary: false)
         logger.log(category: .data, message: "cellView\(String(describing: cellView?.subviews[0]))")
         let imageView = cellView?.subviews[0] as! NSImageView
@@ -116,19 +120,27 @@ class ViewController: NSViewController {
     @objc func copyOnNumber(numberKey: Int){
         logger.log(category: .event, message: "-------- copyOnNumber --------")
         logger.log(category: .data, message: "available copied count in current view: \(copieds!.count)")
-        guard numberKey <= copieds!.count,
-            let item: Copied = copieds![numberKey-1] else {
+//        guard numberKey <= copieds!.count,
+        if numberKey > copieds!.count {
             return
         }
+            let item: Copied = copieds![numberKey-1]
+//        else {
+//            return
+//        }
         copyIt(item: item)
     }
     private func copyOnReturn(currentRow: Int){
         logger.log(category: .event, message: "--------copyOnReturn --------")
         logger.log(category: .data, message: "available copied count in current view: \(copieds!.count)")
-        guard currentRow <= copieds!.count,
-            let item: Copied = copieds![currentRow] else {
+//        guard currentRow <= copieds!.count,
+        if currentRow > copieds!.count{
             return
         }
+            let item: Copied = copieds![currentRow]
+//        else {
+//            return
+//        }
         copyIt(item: item)
     }
     //base copy
@@ -264,6 +276,15 @@ class ViewController: NSViewController {
             }
         }
 
+        if event.keyCode == 3{
+            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask) {
+            case [.command]:
+                logger.log(category: .event, message: "command + f detectd.")
+                searchField.window?.makeFirstResponder(searchField)
+            default:
+                break
+            }
+        }
     }
 }
 
