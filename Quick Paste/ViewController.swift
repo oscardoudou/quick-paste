@@ -99,10 +99,14 @@ class ViewController: NSViewController {
     //table view copy on select
     @objc func copyOnSelect(sender: NSTableView){
         logger.log(category: .event, message: "------- copyOnSelect --------")
-        guard tableView.selectedRow >= 0,
-            let item: Copied = copieds![tableView.selectedRow] else {
+//        guard tableView.selectedRow >= 0,
+        if tableView.selectedRow < 0 {
             return
         }
+            let item: Copied = copieds![tableView.selectedRow]
+//        else {
+//            return
+//        }
         let cellView = tableView.view(atColumn: 1, row: tableView.selectedRow, makeIfNecessary: false)
         logger.log(category: .data, message: "cellView\(String(describing: cellView?.subviews[0]))")
         let imageView = cellView?.subviews[0] as! NSImageView
@@ -116,19 +120,27 @@ class ViewController: NSViewController {
     @objc func copyOnNumber(numberKey: Int){
         logger.log(category: .event, message: "-------- copyOnNumber --------")
         logger.log(category: .data, message: "available copied count in current view: \(copieds!.count)")
-        guard numberKey <= copieds!.count,
-            let item: Copied = copieds![numberKey-1] else {
+//        guard numberKey <= copieds!.count,
+        if numberKey > copieds!.count {
             return
         }
+            let item: Copied = copieds![numberKey-1]
+//        else {
+//            return
+//        }
         copyIt(item: item)
     }
     private func copyOnReturn(currentRow: Int){
         logger.log(category: .event, message: "--------copyOnReturn --------")
         logger.log(category: .data, message: "available copied count in current view: \(copieds!.count)")
-        guard currentRow <= copieds!.count,
-            let item: Copied = copieds![currentRow] else {
+//        guard currentRow <= copieds!.count,
+        if currentRow > copieds!.count{
             return
         }
+            let item: Copied = copieds![currentRow]
+//        else {
+//            return
+//        }
         copyIt(item: item)
     }
     //base copy
@@ -264,6 +276,15 @@ class ViewController: NSViewController {
             }
         }
 
+        if event.keyCode == 3{
+            switch event.modifierFlags.intersection(.deviceIndependentFlagsMask) {
+            case [.command]:
+                logger.log(category: .event, message: "command + f detectd.")
+                searchField.window?.makeFirstResponder(searchField)
+            default:
+                break
+            }
+        }
     }
 }
 
@@ -296,6 +317,17 @@ extension ViewController{
 }
 extension ViewController: NSSearchFieldDelegate{
     func controlTextDidChange(_ notification: Notification) {
+//        var timer: Timer? = nil
+//        //wait for timeInterval to do selector task, but causing execute search for each character you type, which is still unacceptable
+//        timer = Timer.init(timeInterval: 0.5, target: self, selector: #selector(ViewController.search(timer:)), userInfo: notification, repeats: false)
+//        RunLoop.main.add(timer!, forMode: .default)
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.search(_:)), object: notification)
+        perform(#selector(self.search(_:)), with: notification, afterDelay: 0.382)
+    }
+    
+//    @objc func search(timer: Timer){
+//        let notification: Notification = timer.userInfo as! Notification
+    @objc func search(_ notification: Notification){
         if let field = notification.object as? NSSearchField {
             let query = field.stringValue
             if query.isEmpty {
@@ -309,18 +341,27 @@ extension ViewController: NSSearchFieldDelegate{
             //super.controlTextDidChange(notification)
         }
     }
+    
     func requestData(with predicate : NSPredicate? = nil) {
             //instead of modify the predicate of fetchRequest of NSFetchedResultsController, simply change property fetchPredicate value, add observer on the property, so everytime fetchPredicate change, the predicate of fetchRequest of NSFetchedResultsController change as well
             //fetchedResultsController.fetchRequest.predicate = predicate
-        do{
-            try fetchedResultsController.performFetch()
-            logger.log(category: .data, message: "Fetched \(String(describing: fetchedResultsController.fetchedObjects?.count)) objects")
-            copieds = fetchedResultsController.fetchedObjects
-            //when you search, you dont actually add any new object, instead you change the fetchedResultsController's predicate, since this repointing, the context doesn't observer any changes. you need reload to refresh the view manually
-            tableView.reloadData()
-        } catch let error{
-            logger.log(category: .app, message: "Failed to request Data, \(error.localizedDescription)", type: .error)
-            fatalError("Failed to request Data, \(error.localizedDescription) ")
+        let t1 = Date()
+        logger.log(category: .ui, message: "start fetch")
+        DispatchQueue.global(qos: .userInteractive).async {
+            do{
+                try self.fetchedResultsController.performFetch()
+                //when you search, you dont actually add any new object, instead you change the fetchedResultsController's predicate, since this repointing, the context doesn't observer any changes. you need reload to refresh the view manually
+                    logger.log(category: .ui, message: "fetch done, total performFetch() took \(Date().timeIntervalSince(t1)) ")
+                DispatchQueue.main.async { [x = self.fetchedResultsController] in
+                    let t2 = Date()
+                    logger.log(category: .ui, message: "start reloading data after fetch")
+                    self.tableView.reloadData()
+                    logger.log(category: .ui, message: "end of reload Dada, total reloadData() took \(Date().timeIntervalSince(t2)) ")
+                    self.copieds = x.fetchedObjects
+                }
+            }catch let error{
+                logger.log(category: .data, message: "\(error.localizedDescription) Fetched \(String(describing: self.fetchedResultsController.fetchedObjects?.count)) objects", type: .error)
+            }
         }
     }
 }

@@ -25,15 +25,29 @@ class Logger: NSObject {
     private func createOSLog(category: Category) -> OSLog{
         return OSLog(subsystem: Bundle.main.bundleIdentifier ?? "-" , category: category.rawValue)
     }
+    /// Returns current thread name
+    private var currentThread: String {
+        if Thread.isMainThread {
+            return "main"
+        } else {
+            if let threadName = Thread.current.name, !threadName.isEmpty {
+                return"\(threadName)"
+            } else if let queueName = String(validatingUTF8: __dispatch_queue_get_label(nil)), !queueName.isEmpty {
+                return"\(queueName)"
+            } else {
+                return String(format: "%p", Thread.current)
+            }
+        }
+    }
     func log(category: Logger.Category, message: String, access: Logger.AccessLevel = .private, type: OSLogType = .debug, file: String = #file, function: String = #function, line: Int = #line){
         //default file parameter to #file.basename in signature would let all log file portion showing as Looger.swift [confuse]
         let file = file.basename
         let line = String(line)
         switch access{
         case .private:
-            os_log("[%{private}@:%{private}@ %{private}@] | %{private}@", log: createOSLog(category: category), type: type, file, function, line, message)
+            os_log("[%{private}@:%{private}@ %{private}@ %{private}@] | %{private}@", log: createOSLog(category: category), type: type, currentThread, file, function, line, message)
         case .public:
-            os_log("[%{public}@:%{public}@ %{public}@] | %{public}@", log: createOSLog(category: category), type: type,file, function, line, message)
+            os_log("[%{public}@:%{private}@ %{public}@ %{public}@] | %{public}@", log: createOSLog(category: category), type: type, currentThread, file, function, line, message)
         }
     }
     
